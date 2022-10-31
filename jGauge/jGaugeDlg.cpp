@@ -66,10 +66,10 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_BTN_ROI1L, &CjGaugeDlg::OnBnClickedBtnRoi1l)
-	ON_BN_CLICKED(IDC_BTN_ROI1R, &CjGaugeDlg::OnBnClickedBtnRoi1r)
-	ON_BN_CLICKED(IDC_BTN_ROI2L, &CjGaugeDlg::OnBnClickedBtnRoi2l)
-	ON_BN_CLICKED(IDC_BTN_ROI2R, &CjGaugeDlg::OnBnClickedBtnRoi2r)
+	ON_BN_CLICKED(IDC_BTN_ROI1, &CjGaugeDlg::OnBnClickedBtnRoi1)
+	ON_BN_CLICKED(IDC_BTN_ROI2, &CjGaugeDlg::OnBnClickedBtnRoi2)
+	ON_BN_CLICKED(IDC_BTN_ROI3, &CjGaugeDlg::OnBnClickedBtnRoi3)
+	ON_BN_CLICKED(IDC_BTN_ROI4, &CjGaugeDlg::OnBnClickedBtnRoi4)
 END_MESSAGE_MAP()
 
 
@@ -79,6 +79,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// 시스템 메뉴에 "정보..." 메뉴 항목을 추가합니다.
+
 
 	// IDM_ABOUTBOX는 시스템 명령 범위에 있어야 합니다.
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
@@ -161,11 +162,13 @@ void CjGaugeDlg::_callback(unsigned char *imgPtr)
 	//카메라를 초기화합니다.
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
 
-	//m_imgDisplay.gDrawRect(CRect(10, 10, 200, 200));
+
+
+	//디스플레이 Overlay .
 	for (int i = 0; i < ROI_ARR_SIZE; i++)
 	{
 		if (roiRects[i] != NULL) {
-			if (i == ROI_ONE_L || i == ROI_ONE_R)
+			if (i == ROI_ONE || i == ROI_TWO)
 				m_imgDisplay.gDrawRect(roiRects[i], COLOR_RED);
 			else
 				m_imgDisplay.gDrawRect(roiRects[i], COLOR_BLUE);
@@ -222,29 +225,29 @@ HCURSOR CjGaugeDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CjGaugeDlg::OnBnClickedBtnRoi1l()
+void CjGaugeDlg::OnBnClickedBtnRoi1()
 {
 	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_ONE_L] = roiRect;
+	this->roiRects[ROI_ONE] = roiRect;
 	m_imgDisplay.gDrawRect(roiRect);
 }
 
-void CjGaugeDlg::OnBnClickedBtnRoi1r()
+void CjGaugeDlg::OnBnClickedBtnRoi2()
 {
 	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_ONE_R] = roiRect;
+	this->roiRects[ROI_TWO] = roiRect;
 }
 
 
-void CjGaugeDlg::OnBnClickedBtnRoi2l()
+void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
 	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_TWO_L] = roiRect;
+	this->roiRects[ROI_THREE] = roiRect;
 }
 
 
-void CjGaugeDlg::OnBnClickedBtnRoi2r()
+void CjGaugeDlg::OnBnClickedBtnRoi4()
 {
 	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_TWO_R] = roiRect;
+	this->roiRects[ROI_FOUR] = roiRect;
 }

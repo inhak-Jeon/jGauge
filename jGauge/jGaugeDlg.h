@@ -16,10 +16,10 @@
 #define CAM_BPP 8
 #define CAM_NAME "Cam6LO"
 #define ROI_ARR_SIZE 4
-#define ROI_ONE_L 0
-#define ROI_ONE_R 1
-#define ROI_TWO_L 2
-#define ROI_TWO_R 3
+#define ROI_ONE 0
+#define ROI_TWO 1
+#define ROI_THREE 2
+#define ROI_FOUR 3
 
 // CjGaugeDlg 대화 상자
 class CjGaugeDlg : public CDialogEx
@@ -56,8 +56,8 @@ protected:
 public:
 	gImage m_imgDisplay;
 	CStatic m_infoScale;
-	afx_msg void OnBnClickedBtnRoi1l();
-	afx_msg void OnBnClickedBtnRoi1r();
-	afx_msg void OnBnClickedBtnRoi2l();
-	afx_msg void OnBnClickedBtnRoi2r();
+	afx_msg void OnBnClickedBtnRoi1();
+	afx_msg void OnBnClickedBtnRoi2();
+	afx_msg void OnBnClickedBtnRoi3();
+	afx_msg void OnBnClickedBtnRoi4();
 };
