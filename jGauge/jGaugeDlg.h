@@ -15,11 +15,17 @@
 #define CAM_HEIGHT 2048
 #define CAM_BPP 8
 #define CAM_NAME "Cam6LO"
+#define ROI_ARR_SIZE 4
+#define ROI_ONE_L 0
+#define ROI_ONE_R 1
+#define ROI_TWO_L 2
+#define ROI_TWO_R 3
 
 // CjGaugeDlg 대화 상자
 class CjGaugeDlg : public CDialogEx
 {
 private:
+	CRect *roiRects;
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
 
@@ -42,12 +48,16 @@ protected:
 
 	// 생성된 메시지 맵 함수
 	virtual BOOL OnInitDialog();
+	void InitConfig();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
 	gImage m_imgDisplay;
-	afx_msg void OnStnClickedStaticDisplay();
 	CStatic m_infoScale;
+	afx_msg void OnBnClickedBtnRoi1l();
+	afx_msg void OnBnClickedBtnRoi1r();
+	afx_msg void OnBnClickedBtnRoi2l();
+	afx_msg void OnBnClickedBtnRoi2r();
 };

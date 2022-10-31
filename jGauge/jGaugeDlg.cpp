@@ -66,7 +66,10 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_STN_CLICKED(IDC_STATIC_DISPLAY, &CjGaugeDlg::OnStnClickedStaticDisplay)
+	ON_BN_CLICKED(IDC_BTN_ROI1L, &CjGaugeDlg::OnBnClickedBtnRoi1l)
+	ON_BN_CLICKED(IDC_BTN_ROI1R, &CjGaugeDlg::OnBnClickedBtnRoi1r)
+	ON_BN_CLICKED(IDC_BTN_ROI2L, &CjGaugeDlg::OnBnClickedBtnRoi2l)
+	ON_BN_CLICKED(IDC_BTN_ROI2R, &CjGaugeDlg::OnBnClickedBtnRoi2r)
 END_MESSAGE_MAP()
 
 
@@ -101,6 +104,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	this->InitConfig();
 	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
 	this->InitCam();//카메라 초기화
 	
@@ -108,11 +112,20 @@ BOOL CjGaugeDlg::OnInitDialog()
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
+void CjGaugeDlg::InitConfig() {
+	this->roiRects = new CRect[4];
+	for (int i = 0; i < ROI_ARR_SIZE; i++)
+	{
+		roiRects[i] = NULL;
+	}
+
+	//TODO 프로그램 종료시 메모리 삭제 코드 추가할 것
+}
 //카메라를 초기화합니다.
 void CjGaugeDlg::InitCam() {
 	//출력용 디스플레이 설정
 	m_imgDisplay.gCreate(CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
-	m_imgDisplay.gSetUseRoi(TRUE);	//ROI를 사용
+	m_imgDisplay.gSetUseRoi(TRUE);	//ROI를 사용합니다.
 
 	// TODO: 카메라 관련 테스트
 	gCamDahua *dahua_cam1 = new gCamDahua(CAM_NAME);
@@ -147,6 +160,17 @@ void CjGaugeDlg::_callback(unsigned char *imgPtr)
 {
 	//카메라를 초기화합니다.
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+
+	//m_imgDisplay.gDrawRect(CRect(10, 10, 200, 200));
+	for (int i = 0; i < ROI_ARR_SIZE; i++)
+	{
+		if (roiRects[i] != NULL) {
+			if (i == ROI_ONE_L || i == ROI_ONE_R)
+				m_imgDisplay.gDrawRect(roiRects[i], COLOR_RED);
+			else
+				m_imgDisplay.gDrawRect(roiRects[i], COLOR_BLUE);
+		}
+	}
 }
 
 void CjGaugeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -198,9 +222,29 @@ HCURSOR CjGaugeDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
-void CjGaugeDlg::OnStnClickedStaticDisplay()
+void CjGaugeDlg::OnBnClickedBtnRoi1l()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CRect roiRect = m_imgDisplay.gGetRoi();
+	this->roiRects[ROI_ONE_L] = roiRect;
+	m_imgDisplay.gDrawRect(roiRect);
+}
+
+void CjGaugeDlg::OnBnClickedBtnRoi1r()
+{
+	CRect roiRect = m_imgDisplay.gGetRoi();
+	this->roiRects[ROI_ONE_R] = roiRect;
+}
+
+
+void CjGaugeDlg::OnBnClickedBtnRoi2l()
+{
+	CRect roiRect = m_imgDisplay.gGetRoi();
+	this->roiRects[ROI_TWO_L] = roiRect;
+}
+
+
+void CjGaugeDlg::OnBnClickedBtnRoi2r()
+{
+	CRect roiRect = m_imgDisplay.gGetRoi();
+	this->roiRects[ROI_TWO_R] = roiRect;
 }
