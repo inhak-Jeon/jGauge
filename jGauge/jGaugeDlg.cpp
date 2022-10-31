@@ -59,6 +59,7 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATIC_DISPLAY, m_imgDisplay);
+	DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -100,46 +101,52 @@ BOOL CjGaugeDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	m_imgDisplay.gCreate(CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
-
-	// TODO: 카메라 관련 테스트
-	gCamDahua *dahua_cam1 = new gCamDahua("Cam6LO");
-	dahua_cam1->init(G_CAM_NONE);	// 해당캠 초기화
-
-	//캠 그랩
-	bool bErrChk = dahua_cam1->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
-	//if (bErrChk == FALSE)
-	//{
-	//	m_logger.info("문제있음");
-	//}
-	//else
-	//	m_logger.info("문제없음");
-
-	//unsigned char** pImgData = dahua_cam1->getPointer();	//grab된 프레임의 이미지 주소를 가져옵니다. 실패시 nullptr
-
-	//if (pImgData == nullptr)
-	//{
-	//	m_logger.info("camera null error");
-	//}
-	//else
-	//	m_logger.info("camera started");
-
-	//m_logger.info("camera: {}, {}, {}", CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_BPP);
-	//m_logger.end("카메라 연결까지 걸리는 시간 : ");
+	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
+	this->InitCam();//카메라 초기화
+	
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
+
+//카메라를 초기화합니다.
+void CjGaugeDlg::InitCam() {
+	//출력용 디스플레이 설정
+	m_imgDisplay.gCreate(CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+	m_imgDisplay.gSetUseRoi(TRUE);	//ROI를 사용
+
+	// TODO: 카메라 관련 테스트
+	gCamDahua *dahua_cam1 = new gCamDahua(CAM_NAME);
+	dahua_cam1->init(G_CAM_NONE);	// 해당캠 초기화
+
+	gLogger logger("ihj", "C:/Users/USER/Documents/Visual Studio 2015/Projects/ihjExam/Log/log.log", true, 1024 * 30000, 5);
+	//캠 그랩
+	bool bErrChk = dahua_cam1->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
+	if (bErrChk == FALSE)
+	{
+		logger.info("문제있음");
+	}
+	else
+		logger.info("문제없음");
+
+	unsigned char** pImgData = dahua_cam1->getPointer();	//grab된 프레임의 이미지 주소를 가져옵니다. 실패시 nullptr
+
+	if (pImgData == nullptr)
+	{
+		logger.info("camera null error");
+	}
+	else
+		logger.info("camera started");
+
+	logger.info("camera: {}, {}, {}", CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+	logger.end("카메라 연결까지 걸리는 시간 : ");
+	
+	gString strScale= gString(CString("Scale : "))+gString(CAM_WIDTH) +gString(CString(" x "))+gString(CAM_HEIGHT);
+	m_infoScale.SetWindowTextW(strScale.toCString());
+}
 void CjGaugeDlg::_callback(unsigned char *imgPtr)
 {
+	//카메라를 초기화합니다.
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
-
-	/*int nWidth = m_imgDisplay.gGetWidth();
-	int nHeight = m_imgDisplay.gGetHeight();
-	int nPitch = m_imgDisplay.gGetPitch();
-	unsigned char * fm = m_imgCamDisplay.gGetImgPtr();
-
-	CProcess process(fm, nWidth, nHeight, nPitch);
-	process.autoFindEdge(&m_imgCamDisplay);*/
 }
 
 void CjGaugeDlg::OnSysCommand(UINT nID, LPARAM lParam)

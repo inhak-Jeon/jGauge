@@ -5,6 +5,8 @@
 #pragma once
 #include "gImage.h"
 #include "gCamDahua.h"
+#include "afxwin.h"
+#include "gString.h"
 #pragma comment(lib, "/gImage.lib")  
 #pragma comment(lib, "/gLogger.lib")
 #pragma comment(lib, "/gCam.lib")
@@ -12,11 +14,13 @@
 #define CAM_WIDTH 2448
 #define CAM_HEIGHT 2048
 #define CAM_BPP 8
+#define CAM_NAME "Cam6LO"
 
 // CjGaugeDlg 대화 상자
 class CjGaugeDlg : public CDialogEx
 {
 private:
+	void InitCam();
 	void _callback(unsigned char *imgPtr);
 
 // 생성입니다.
@@ -45,4 +49,5 @@ protected:
 public:
 	gImage m_imgDisplay;
 	afx_msg void OnStnClickedStaticDisplay();
+	CStatic m_infoScale;
 };
