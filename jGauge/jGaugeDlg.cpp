@@ -58,9 +58,9 @@ CjGaugeDlg::CjGaugeDlg(CWnd* pParent /*=NULL*/)
 	m_lineBase.t = 0;
 	m_lineBase.a = 0;
 	m_lineBase.b = 0;
-	m_LinePlate.t = 0;
-	m_LinePlate.a = 0;
-	m_LinePlate.b = 0;
+	m_linePlate.t = 0;
+	m_linePlate.a = 0;
+	m_linePlate.b = 0;
 }
 
 void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
@@ -68,6 +68,8 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATIC_DISPLAY, m_imgDisplay);
 	DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
+	DDX_Control(pDX, IDC_INFO_DISTANCE_MM, m_infoDistanceMM);
+	DDX_Control(pDX, IDC_INFO_DISTANCE_PIXEL, m_infoDistancePixel);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -207,17 +209,8 @@ void CjGaugeDlg::OnPaint()
 	}
 
 	m_imgDisplay.gDrawClear();
-	//rectRoi 그리기
-	for (int i = 0; i < MAX_OBJECT; i++)
-	{
-		if (m_rectRoi[i] != NULL) {
-			if (i == 0 || i == 1)
-				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_RED);
-			else
-				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_BLUE);
-		}
-	}
-	//엣지 그리기
+	//그리기
+	DrawRects();
 	DrawEdge();
 }
 
@@ -228,32 +221,55 @@ HCURSOR CjGaugeDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CjGaugeDlg::DrawRects() {
+	for (int i = 0; i < MAX_OBJECT; i++)
+	{
+		if (m_rectRoi[i] != NULL) {
+			if (i == PLATE_LEFT || i == PLATE_RIGHT)
+				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_RED);
+			else if (i == FLAG_LEFT)
+				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_BLUE);
+			else if (i == FLAG_RIGHT)
+				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_GREEN);;
+		}
+	}
+}
 void CjGaugeDlg::DrawEdge()
 {
-	//BaseLine 엣지를 그리기
-	double t = m_lineBase.t;
-	double a = m_lineBase.a;
-	double b = m_lineBase.b;
-	if (t == 0 && a == 0 && b == 0)
-		return;
+	double t, a, b;
 	CPoint p1, p2;
-	p1.x = 0;
-	p2.x = m_imgDisplay.gGetWidth();
-	p1.y = (a*p1.x + b) / t;
-	p2.y = (a*p2.x + b) / t;
-	m_imgDisplay.gDrawLine(p1, p2);
+	//BaseLine 엣지 그리기
+	if ( !LineIsNull(m_lineBase) )
+	{
+		t = m_lineBase.t;
+		a = m_lineBase.a;
+		b = m_lineBase.b;
+		p1.x = 0;
+		p2.x = m_imgDisplay.gGetWidth();
+		p1.y = (a*p1.x + b) / t;
+		p2.y = (a*p2.x + b) / t;
+		m_imgDisplay.gDrawLine(p1, p2);
+	}
+	//PlateLine 엣지 그리기
+	if (!LineIsNull(m_linePlate))
+	{
+		t = m_linePlate.t;
+		a = m_linePlate.a;
+		b = m_linePlate.b;
+		p1.x = 0;
+		p2.x = m_imgDisplay.gGetWidth();
+		p1.y = (a*p1.x + b) / t;
+		p2.y = (a*p2.x + b) / t;
+		m_imgDisplay.gDrawLine(p1, p2);
+	}
+}
 
-	t = m_LinePlate.t;
-	a = m_LinePlate.a;
-	b = m_LinePlate.b;
-	if (t == 0 && a == 0 && b == 0)
-		return;
-	p1, p2;
-	p1.x = 0;
-	p2.x = m_imgDisplay.gGetWidth();
-	p1.y = (a*p1.x + b) / t;
-	p2.y = (a*p2.x + b) / t;
-	m_imgDisplay.gDrawLine(p1, p2);
+bool CjGaugeDlg::LineIsNull(Line line)
+{
+	if (line.t == 0 && line.a == 0 && line.b == 0)
+		return true;
+	else
+		return false;
 }
 
 
@@ -266,30 +282,21 @@ void CjGaugeDlg::OnBnClickedBtnCapture()
 void CjGaugeDlg::OnBnClickedBtnRoi1()
 {
 	m_rectRoi[PLATE_LEFT] = m_imgDisplay.gGetRoi();
-
-	Process process(&m_imgDisplay);
-	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
-
 	OnPaint();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi2()
 {
 	m_rectRoi[PLATE_RIGHT] = m_imgDisplay.gGetRoi();
-
-	Process process(&m_imgDisplay);
-	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_LinePlate.t, &m_LinePlate.a, &m_LinePlate.b);
-
 	OnPaint();
 }
-
 
 void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
 	m_rectRoi[FLAG_LEFT] = m_imgDisplay.gGetRoi();
+	Process process(&m_imgDisplay);
 	OnPaint();
 }
-
 
 void CjGaugeDlg::OnBnClickedBtnRoi4()
 {
@@ -297,22 +304,50 @@ void CjGaugeDlg::OnBnClickedBtnRoi4()
 	OnPaint();
 }
 
-
 void CjGaugeDlg::OnBnClickedBtnMeasure()
-{
+{	
+	//Plate-left Roi
+	Process process(&m_imgDisplay);
+	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
+	//Plate-right Roi
+	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_linePlate.t, &m_linePlate.a, &m_linePlate.b);
+
+
 	//PLATE_Right 까지의 거리 구하기
-	int PlatePointY = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
-	int PlatePointX = (m_LinePlate.t * PlatePointY - m_LinePlate.b) / m_LinePlate.a;	// x = (ty-b)/a
-																							
-	//점과 직선사이의 거리  d = |ax0+by0+b| / root(a^2+b^2)
-	int x = PlatePointX;
-	int y = PlatePointY;
-	double d = abs(m_lineBase.a * x + (-m_lineBase.t)*y + m_lineBase.b) / sqrt(pow(m_lineBase.a, 2) + pow(m_lineBase.t, 2));
+	int x, y;
+	double d;
+		y = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
+		x = (m_linePlate.t * y - m_linePlate.b) / m_linePlate.a;
+		d = process.measureDistance(CPoint(x, y), m_lineBase);
 
-	std::cout << "d값 : " << d<<std::endl;
+		gString str = gString("DISTANCE : ") + gString(int(d)) + gString("(pixel)");
+		m_infoDistancePixel.SetWindowTextW(str.toCString());
 
-	//TODO 테스트용 그리기
-	m_imgDisplay.gDrawLine(CPoint(PlatePointX, PlatePointY), CPoint(PlatePointX, PlatePointY), COLOR_RED, 5);	
-	m_imgDisplay.gDrawLine(CPoint(PlatePointX-d, PlatePointY), CPoint(PlatePointX, PlatePointY), COLOR_RED, 2);
+		//TODO 테스트용 그리기
+		m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_RED, 5);	
+		m_imgDisplay.gDrawLine(CPoint(x-d, y), CPoint(x, y), COLOR_RED, 2);
+	//
+
+	//flag-left point
+
+	y = m_rectRoi[FLAG_LEFT].CenterPoint().y;
+	x = process.getEdgePoint(m_rectRoi[FLAG_LEFT]);	// x = (ty-b)/a
+	d = process.measureDistance(CPoint(x, y), m_lineBase);
+
+		//TODO 테스트용 그리기
+		m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_BLUE, 5);
+		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_BLUE, 2);
+
+
+
+	//FLAG_Left 까지의 거리 구하기
+	y = m_rectRoi[FLAG_RIGHT].CenterPoint().y;
+	x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT]);	// x = (ty-b)/a
+	d = process.measureDistance(CPoint(x, y), m_lineBase);
+
+
+		//TODO 테스트용 그리기
+		m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_GREEN, 5);
+		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_GREEN, 2);
 }
 

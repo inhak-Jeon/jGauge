@@ -17,7 +17,8 @@ public:
 	virtual ~Process();
 	
 	void getEdge(CRect rect, double *t, double *a, double *b);
-	void findDistance(Line line, CPoint point, Line distanceLine, gImage * display);
+	int getEdgePoint(CRect rect);
+	double measureDistance(CPoint point, Line line);
 };
 
 

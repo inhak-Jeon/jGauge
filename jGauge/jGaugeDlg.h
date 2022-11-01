@@ -31,13 +31,14 @@ class CjGaugeDlg : public CDialogEx
 {
 private:
 	CRect m_rectRoi[MAX_OBJECT];
+	double m_diffPixel[MAX_OBJECT];
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
 
 // 생성입니다.
 public:
 	Line m_lineBase;
-	Line m_LinePlate;
+	Line m_linePlate;
 	CjGaugeDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
 
 // 대화 상자 데이터입니다.
@@ -64,10 +65,16 @@ public:
 	gImage m_imgDisplay;
 	CStatic m_infoScale;
 	afx_msg void OnBnClickedBtnRoi1();
+	void DrawRects();
 	void DrawEdge();
+	bool LineIsNull(Line line);
 	afx_msg void OnBnClickedBtnRoi2();
 	afx_msg void OnBnClickedBtnRoi3();
 	afx_msg void OnBnClickedBtnRoi4();
 	afx_msg void OnBnClickedBtnMeasure();
 	afx_msg void OnBnClickedBtnCapture();
+	// mm단위 거리정보입니다.
+	// pixel단위 거리정보입니다.
+	CStatic m_infoDistancePixel;
+	CStatic m_infoDistanceMM;
 };

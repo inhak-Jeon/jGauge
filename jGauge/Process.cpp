@@ -67,31 +67,49 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 	delete pY, pX, pData;
 }
 
-void Process::findDistance(Line line, CPoint point, Line distanceLine, gImage *display)
+#include <algorithm>
+#include <math.h>
+int Process::getEdgePoint(CRect rect) {
+	gEdge edge;
+
+	int *pData; //세로1줄(1열) 짜리 배열
+	double *pX;
+	int *pXInt;
+	double dEdge;
+	int dir;
+	int nSlope, nDir;
+
+	gEdge::EdgeType edgeoption = gEdge::EdgeType::ABS;
+
+	pData = new int[rect.Width()]; //가로1줄(1열) 짜리 배열
+	pX = new double[rect.Height()];
+	pXInt = new int[rect.Height()];
+	
+	for (int j = rect.top; j < rect.bottom; j++) {
+		for (int i = rect.left; i < rect.right; i++)
+		{
+			pData[i - rect.left] = m_fm[j*m_nPitch + i];
+		}
+		edge.LineFindEdge(edgeoption, rect.Width(), pData, &dEdge, &nSlope, &dir);
+
+		pXInt[j - rect.top] = dEdge + rect.left;
+
+		//this->m_fm[int(pY[j - rect.top] *m_nPitch + pX[j - rect.top])] = 255;
+	}
+	//pX중 최빈값의 x를 계산
+	sort(pXInt, pXInt+rect.Height());
+
+	double result = pXInt[rect.Height() / 2]; //중앙값 edge
+	delete pX, pData;
+	return result;
+}
+
+/*점과 직선사이의 거리*/
+double Process::measureDistance(CPoint point, Line line)
 {
-	//한점(point)를 지나는 수직인 직선	{y-y1 = m(x-x1) +b}
-	Line orthoLine;
-	orthoLine.t = line.t*(line.t*point.y);
-	orthoLine.a = 1 / (-line.a)*(-point.x);
-	orthoLine.b = line.b;
+	double x = point.x;
+	double y = point.y;
 
-	//수직인 직선과의 교점
-	gEdge edge = gEdge();
-	double x, y;
-	edge.FindCrossPoint(line.t, line.a, line.b, orthoLine.t, orthoLine.a, orthoLine.b, &x, &y);
-	CPoint crossP = CPoint(x, y);
-
-
-	//BaseLine 엣지를 그리기
-	double t = orthoLine.t;
-	double a = orthoLine.a;
-	double b = orthoLine.b ;
-	if (t == 0 && a == 0 && b == 0)
-		return;
-	CPoint p1, p2;
-	p1.x = 0;
-	p2.x = display->gGetWidth();
-	p1.y = (a*p1.x + b) / t;
-	p2.y = (a*p2.x + b) / t;
-	display->gDrawLine(p1, p2,COLOR_BLUE);
+					//점과 직선사이의 거리  d = |ax0+by0+b| / root(a^2+b^2)
+	return abs(line.a * x + (-line.t)*y + line.b) / sqrt(pow(line.a, 2) + pow(line.t, 2));
 }
