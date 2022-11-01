@@ -7,6 +7,7 @@
 #include "jGaugeDlg.h"
 #include "afxdialogex.h"
 #include "Process.h"
+#include <math.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -286,19 +287,32 @@ void CjGaugeDlg::OnBnClickedBtnRoi2()
 void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
 	m_rectRoi[FLAG_LEFT] = m_imgDisplay.gGetRoi();
+	OnPaint();
 }
 
 
 void CjGaugeDlg::OnBnClickedBtnRoi4()
 {
 	m_rectRoi[FLAG_RIGHT] = m_imgDisplay.gGetRoi();
+	OnPaint();
 }
-
-
 
 
 void CjGaugeDlg::OnBnClickedBtnMeasure()
 {
-	//거리를 측정
-	//process.findDistance(*m_lineBase, roiRect[0].top, *m_LinePlate, &m_imgDisplay);
+	//PLATE_Right 까지의 거리 구하기
+	int PlatePointY = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
+	int PlatePointX = (m_LinePlate.t * PlatePointY - m_LinePlate.b) / m_LinePlate.a;	// x = (ty-b)/a
+																							
+	//점과 직선사이의 거리  d = |ax0+by0+b| / root(a^2+b^2)
+	int x = PlatePointX;
+	int y = PlatePointY;
+	double d = abs(m_lineBase.a * x + (-m_lineBase.t)*y + m_lineBase.b) / sqrt(pow(m_lineBase.a, 2) + pow(m_lineBase.t, 2));
+
+	std::cout << "d값 : " << d<<std::endl;
+
+	//TODO 테스트용 그리기
+	m_imgDisplay.gDrawLine(CPoint(PlatePointX, PlatePointY), CPoint(PlatePointX, PlatePointY), COLOR_RED, 5);	
+	m_imgDisplay.gDrawLine(CPoint(PlatePointX-d, PlatePointY), CPoint(PlatePointX, PlatePointY), COLOR_RED, 2);
 }
+
