@@ -6,6 +6,7 @@
 #include "jGauge.h"
 #include "jGaugeDlg.h"
 #include "afxdialogex.h"
+#include "Process.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -115,10 +116,10 @@ BOOL CjGaugeDlg::OnInitDialog()
 
 void CjGaugeDlg::InitConfig() {
 	this->roiRects = new CRect[4];
-	for (int i = 0; i < ROI_ARR_SIZE; i++)
+	/*for (int i = 0; i < ROI_ARR_SIZE; i++)
 	{
-		roiRects[i] = NULL;
-	}
+		roiRects[i] = Crect();
+	}*/
 
 	//TODO 프로그램 종료시 메모리 삭제 코드 추가할 것
 }
@@ -162,7 +163,18 @@ void CjGaugeDlg::_callback(unsigned char *imgPtr)
 	//카메라를 초기화합니다.
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
 
+	Process	process(&m_imgDisplay);
+	//엣지를 찾습니다.
+	//for (int i = 0; i < ROI_ARR_SIZE; i++)
+	//{
+	//	if (roiRects[i].left != 0 && roiRects[i].right != 0&& roiRects[i].top != 0&& roiRects[i].bottom!=0) {
+	//		double *t, *a, *b;
+	//		process.getEdgeBox(roiRects[i], t, a, b);
+	//		//엣지를 그립니다.
+	//		m_imgDisplay.gDrawLine(CPoint((-*b / *a), 0), CPoint(((-*b / *a)), m_imgDisplay.gGetHeight()));
 
+	//	}
+	//}
 
 	//디스플레이 Overlay .
 	for (int i = 0; i < ROI_ARR_SIZE; i++)
@@ -230,6 +242,21 @@ void CjGaugeDlg::OnBnClickedBtnRoi1()
 	CRect roiRect = m_imgDisplay.gGetRoi();
 	this->roiRects[ROI_ONE] = roiRect;
 	m_imgDisplay.gDrawRect(roiRect);
+
+	double t, a, b;
+
+	Process process(&m_imgDisplay);
+	process.getEdgeBox(roiRects[0], &t, &a, &b);
+	//엣지를 그립니다.
+	//m_imgDisplay.gDrawLine(CPoint((-*b / *a), 0), CPoint(((-*b / *a)), m_imgDisplay.gGetHeight()));
+	
+	//직선 그리기
+	CPoint p1, p2;
+	p1.x = 0;
+	p2.x = m_imgDisplay.gGetWidth();
+	p1.y = (a*p1.x + b) / t;
+	p2.y = (a*p2.x + b) / t;
+	m_imgDisplay.gDrawLine(p1, p2);
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi2()

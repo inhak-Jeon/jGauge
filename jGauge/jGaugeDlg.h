@@ -10,6 +10,7 @@
 #pragma comment(lib, "/gImage.lib")  
 #pragma comment(lib, "/gLogger.lib")
 #pragma comment(lib, "/gCam.lib")
+#pragma comment(lib, "/gEdge.lib")
 
 #define CAM_WIDTH 2448
 #define CAM_HEIGHT 2048
