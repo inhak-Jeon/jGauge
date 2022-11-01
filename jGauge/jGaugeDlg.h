@@ -8,6 +8,7 @@
 #include "afxwin.h"
 #include "gString.h"
 #include "Line.h"
+#include "MeasuredInfo.h"
 #pragma comment(lib, "/gImage.lib")  
 #pragma comment(lib, "/gLogger.lib")
 #pragma comment(lib, "/gCam.lib")
@@ -31,7 +32,7 @@ class CjGaugeDlg : public CDialogEx
 {
 private:
 	CRect m_rectRoi[MAX_OBJECT];
-	double m_diffPixel[MAX_OBJECT];
+	MeasuredInfo m_measuredInfo[MAX_OBJECT];
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
 
@@ -67,6 +68,7 @@ public:
 	afx_msg void OnBnClickedBtnRoi1();
 	void DrawRects();
 	void DrawEdge();
+	void DrawDiffPixels();
 	bool LineIsNull(Line line);
 	afx_msg void OnBnClickedBtnRoi2();
 	afx_msg void OnBnClickedBtnRoi3();

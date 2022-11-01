@@ -9,5 +9,3 @@ public:
 	double a;
 	double b;
 };
-
-

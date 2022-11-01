@@ -212,6 +212,7 @@ void CjGaugeDlg::OnPaint()
 	//그리기
 	DrawRects();
 	DrawEdge();
+	DrawDiffPixels();
 }
 
 // 사용자가 최소화된 창을 끄는 동안에 커서가 표시되도록 시스템에서
@@ -263,6 +264,19 @@ void CjGaugeDlg::DrawEdge()
 		m_imgDisplay.gDrawLine(p1, p2);
 	}
 }
+void CjGaugeDlg::DrawDiffPixels() {
+	m_imgDisplay.gDrawLine(CPoint(m_measuredInfo[PLATE_RIGHT].x, m_measuredInfo[PLATE_RIGHT].y),
+		CPoint(m_measuredInfo[PLATE_RIGHT].x- m_measuredInfo[PLATE_RIGHT].distancePixel, m_measuredInfo[PLATE_RIGHT].y), COLOR_RED, 2);
+
+
+	m_imgDisplay.gDrawLine(CPoint(m_measuredInfo[FLAG_LEFT].x, m_measuredInfo[FLAG_LEFT].y),
+		CPoint(m_measuredInfo[FLAG_LEFT].x - m_measuredInfo[FLAG_LEFT].distancePixel, m_measuredInfo[FLAG_LEFT].y), COLOR_BLUE, 2);
+
+
+	m_imgDisplay.gDrawLine(CPoint(m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y),
+		CPoint(m_measuredInfo[FLAG_RIGHT].x - m_measuredInfo[FLAG_RIGHT].distancePixel, m_measuredInfo[FLAG_RIGHT].y), COLOR_GREEN, 2);
+}
+
 
 bool CjGaugeDlg::LineIsNull(Line line)
 {
@@ -294,7 +308,6 @@ void CjGaugeDlg::OnBnClickedBtnRoi2()
 void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
 	m_rectRoi[FLAG_LEFT] = m_imgDisplay.gGetRoi();
-	Process process(&m_imgDisplay);
 	OnPaint();
 }
 
@@ -305,49 +318,47 @@ void CjGaugeDlg::OnBnClickedBtnRoi4()
 }
 
 void CjGaugeDlg::OnBnClickedBtnMeasure()
-{	
+{
 	//Plate-left Roi
 	Process process(&m_imgDisplay);
 	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
 	//Plate-right Roi
 	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_linePlate.t, &m_linePlate.a, &m_linePlate.b);
 
-
 	//PLATE_Right 까지의 거리 구하기
-	int x, y;
-	double d;
-		y = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
-		x = (m_linePlate.t * y - m_linePlate.b) / m_linePlate.a;
-		d = process.measureDistance(CPoint(x, y), m_lineBase);
+	m_measuredInfo[PLATE_RIGHT].y = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
+	m_measuredInfo[PLATE_RIGHT].x = (m_linePlate.t * m_measuredInfo[PLATE_RIGHT].y - m_linePlate.b) / m_linePlate.a;
+	m_measuredInfo[PLATE_RIGHT].distancePixel = process.measureDistance(
+		CPoint(m_measuredInfo[PLATE_RIGHT].x, m_measuredInfo[PLATE_RIGHT].y), m_lineBase);
 
-		gString str = gString("DISTANCE : ") + gString(int(d)) + gString("(pixel)");
-		m_infoDistancePixel.SetWindowTextW(str.toCString());
+		/*gString str = gString("DISTANCE : ") + gString(int(d)) + gString("(pixel)");
+		m_infoDistancePixel.SetWindowTextW(str.toCString());*/
 
 		//TODO 테스트용 그리기
-		m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_RED, 5);	
-		m_imgDisplay.gDrawLine(CPoint(x-d, y), CPoint(x, y), COLOR_RED, 2);
-	//
+		/*m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_RED, 5);	
+		m_imgDisplay.gDrawLine(CPoint(x-d, y), CPoint(x, y), COLOR_RED, 2);*/
 
 	//flag-left point
-
-	y = m_rectRoi[FLAG_LEFT].CenterPoint().y;
-	x = process.getEdgePoint(m_rectRoi[FLAG_LEFT]);	// x = (ty-b)/a
-	d = process.measureDistance(CPoint(x, y), m_lineBase);
+	m_measuredInfo[FLAG_LEFT].y = m_rectRoi[FLAG_LEFT].CenterPoint().y;
+	m_measuredInfo[FLAG_LEFT].x = process.getEdgePoint(m_rectRoi[FLAG_LEFT]);	// x = (ty-b)/a
+	m_measuredInfo[FLAG_LEFT].distancePixel = process.measureDistance(
+		CPoint(m_measuredInfo[FLAG_LEFT].x, m_measuredInfo[FLAG_LEFT].y), m_lineBase);
 
 		//TODO 테스트용 그리기
-		m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_BLUE, 5);
-		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_BLUE, 2);
+		/*m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_BLUE, 5);
+		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_BLUE, 2);*/
 
 
 
 	//FLAG_Left 까지의 거리 구하기
-	y = m_rectRoi[FLAG_RIGHT].CenterPoint().y;
-	x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT]);	// x = (ty-b)/a
-	d = process.measureDistance(CPoint(x, y), m_lineBase);
-
+	m_measuredInfo[FLAG_RIGHT].y = m_rectRoi[FLAG_RIGHT].CenterPoint().y;
+	m_measuredInfo[FLAG_RIGHT].x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT]);	// x = (ty-b)/a
+	m_measuredInfo[FLAG_RIGHT].distancePixel = process.measureDistance(
+		CPoint(m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y), m_lineBase);
 
 		//TODO 테스트용 그리기
-		m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_GREEN, 5);
-		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_GREEN, 2);
+		/*m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_GREEN, 5);
+		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_GREEN, 2);*/
+	OnPaint();
 }
 
