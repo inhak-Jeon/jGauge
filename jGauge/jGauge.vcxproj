@@ -211,6 +211,7 @@ for /F "tokens=5 delims= " %%a in ('dir "$(TargetDir)" ^| findstr ".dll"') do fo
   <ItemGroup>
     <ClInclude Include="jGauge.h" />
     <ClInclude Include="jGaugeDlg.h" />
+    <ClInclude Include="Line.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />

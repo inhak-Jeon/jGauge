@@ -54,6 +54,12 @@ CjGaugeDlg::CjGaugeDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_JGAUGE_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_lineBase.t = 0;
+	m_lineBase.a = 0;
+	m_lineBase.b = 0;
+	m_LinePlate.t = 0;
+	m_LinePlate.a = 0;
+	m_LinePlate.b = 0;
 }
 
 void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
@@ -71,6 +77,8 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_ROI2, &CjGaugeDlg::OnBnClickedBtnRoi2)
 	ON_BN_CLICKED(IDC_BTN_ROI3, &CjGaugeDlg::OnBnClickedBtnRoi3)
 	ON_BN_CLICKED(IDC_BTN_ROI4, &CjGaugeDlg::OnBnClickedBtnRoi4)
+	ON_BN_CLICKED(IDC_BTN_MEASURE, &CjGaugeDlg::OnBnClickedBtnMeasure)
+	ON_BN_CLICKED(IDC_BTN_CAPTURE, &CjGaugeDlg::OnBnClickedBtnCapture)
 END_MESSAGE_MAP()
 
 
@@ -106,7 +114,6 @@ BOOL CjGaugeDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	this->InitConfig();
 	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
 	this->InitCam();//카메라 초기화
 	
@@ -114,15 +121,6 @@ BOOL CjGaugeDlg::OnInitDialog()
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
-void CjGaugeDlg::InitConfig() {
-	this->roiRects = new CRect[4];
-	/*for (int i = 0; i < ROI_ARR_SIZE; i++)
-	{
-		roiRects[i] = Crect();
-	}*/
-
-	//TODO 프로그램 종료시 메모리 삭제 코드 추가할 것
-}
 //카메라를 초기화합니다.
 void CjGaugeDlg::InitCam() {
 	//출력용 디스플레이 설정
@@ -130,12 +128,12 @@ void CjGaugeDlg::InitCam() {
 	m_imgDisplay.gSetUseRoi(TRUE);	//ROI를 사용합니다.
 
 	// TODO: 카메라 관련 테스트
-	gCamDahua *dahua_cam1 = new gCamDahua(CAM_NAME);
-	dahua_cam1->init(G_CAM_NONE);	// 해당캠 초기화
+	m_cam = new gCamDahua(CAM_NAME);
+	m_cam->init(G_CAM_NONE);	// 해당캠 초기화
 
 	gLogger logger("ihj", "C:/Users/USER/Documents/Visual Studio 2015/Projects/ihjExam/Log/log.log", true, 1024 * 30000, 5);
 	//캠 그랩
-	bool bErrChk = dahua_cam1->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
+	bool bErrChk = m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
 	if (bErrChk == FALSE)
 	{
 		logger.info("문제있음");
@@ -143,7 +141,7 @@ void CjGaugeDlg::InitCam() {
 	else
 		logger.info("문제없음");
 
-	unsigned char** pImgData = dahua_cam1->getPointer();	//grab된 프레임의 이미지 주소를 가져옵니다. 실패시 nullptr
+	unsigned char** pImgData = m_cam->getPointer();	//grab된 프레임의 이미지 주소를 가져옵니다. 실패시 nullptr
 
 	if (pImgData == nullptr)
 	{
@@ -164,28 +162,6 @@ void CjGaugeDlg::_callback(unsigned char *imgPtr)
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
 
 	Process	process(&m_imgDisplay);
-	//엣지를 찾습니다.
-	//for (int i = 0; i < ROI_ARR_SIZE; i++)
-	//{
-	//	if (roiRects[i].left != 0 && roiRects[i].right != 0&& roiRects[i].top != 0&& roiRects[i].bottom!=0) {
-	//		double *t, *a, *b;
-	//		process.getEdgeBox(roiRects[i], t, a, b);
-	//		//엣지를 그립니다.
-	//		m_imgDisplay.gDrawLine(CPoint((-*b / *a), 0), CPoint(((-*b / *a)), m_imgDisplay.gGetHeight()));
-
-	//	}
-	//}
-
-	//디스플레이 Overlay .
-	for (int i = 0; i < ROI_ARR_SIZE; i++)
-	{
-		if (roiRects[i] != NULL) {
-			if (i == ROI_ONE || i == ROI_TWO)
-				m_imgDisplay.gDrawRect(roiRects[i], COLOR_RED);
-			else
-				m_imgDisplay.gDrawRect(roiRects[i], COLOR_BLUE);
-		}
-	}
 }
 
 void CjGaugeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -228,6 +204,20 @@ void CjGaugeDlg::OnPaint()
 	{
 		CDialogEx::OnPaint();
 	}
+
+	m_imgDisplay.gDrawClear();
+	//rectRoi 그리기
+	for (int i = 0; i < MAX_OBJECT; i++)
+	{
+		if (m_rectRoi[i] != NULL) {
+			if (i == 0 || i == 1)
+				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_RED);
+			else
+				m_imgDisplay.gDrawRect(m_rectRoi[i], COLOR_BLUE);
+		}
+	}
+	//엣지 그리기
+	DrawEdge();
 }
 
 // 사용자가 최소화된 창을 끄는 동안에 커서가 표시되도록 시스템에서
@@ -237,21 +227,27 @@ HCURSOR CjGaugeDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CjGaugeDlg::OnBnClickedBtnRoi1()
+void CjGaugeDlg::DrawEdge()
 {
-	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_ONE] = roiRect;
-	m_imgDisplay.gDrawRect(roiRect);
-
-	double t, a, b;
-
-	Process process(&m_imgDisplay);
-	process.getEdgeBox(roiRects[0], &t, &a, &b);
-	//엣지를 그립니다.
-	//m_imgDisplay.gDrawLine(CPoint((-*b / *a), 0), CPoint(((-*b / *a)), m_imgDisplay.gGetHeight()));
-	
-	//직선 그리기
+	//BaseLine 엣지를 그리기
+	double t = m_lineBase.t;
+	double a = m_lineBase.a;
+	double b = m_lineBase.b;
+	if (t == 0 && a == 0 && b == 0)
+		return;
 	CPoint p1, p2;
+	p1.x = 0;
+	p2.x = m_imgDisplay.gGetWidth();
+	p1.y = (a*p1.x + b) / t;
+	p2.y = (a*p2.x + b) / t;
+	m_imgDisplay.gDrawLine(p1, p2);
+
+	t = m_LinePlate.t;
+	a = m_LinePlate.a;
+	b = m_LinePlate.b;
+	if (t == 0 && a == 0 && b == 0)
+		return;
+	p1, p2;
 	p1.x = 0;
 	p2.x = m_imgDisplay.gGetWidth();
 	p1.y = (a*p1.x + b) / t;
@@ -259,22 +255,50 @@ void CjGaugeDlg::OnBnClickedBtnRoi1()
 	m_imgDisplay.gDrawLine(p1, p2);
 }
 
+
+void CjGaugeDlg::OnBnClickedBtnCapture()
+{
+	m_cam->stopGrabbing();
+}
+
+
+void CjGaugeDlg::OnBnClickedBtnRoi1()
+{
+	m_rectRoi[PLATE_LEFT] = m_imgDisplay.gGetRoi();
+
+	Process process(&m_imgDisplay);
+	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
+
+	OnPaint();
+}
+
 void CjGaugeDlg::OnBnClickedBtnRoi2()
 {
-	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_TWO] = roiRect;
+	m_rectRoi[PLATE_RIGHT] = m_imgDisplay.gGetRoi();
+
+	Process process(&m_imgDisplay);
+	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_LinePlate.t, &m_LinePlate.a, &m_LinePlate.b);
+
+	OnPaint();
 }
 
 
 void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
-	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_THREE] = roiRect;
+	m_rectRoi[FLAG_LEFT] = m_imgDisplay.gGetRoi();
 }
 
 
 void CjGaugeDlg::OnBnClickedBtnRoi4()
 {
-	CRect roiRect = m_imgDisplay.gGetRoi();
-	this->roiRects[ROI_FOUR] = roiRect;
+	m_rectRoi[FLAG_RIGHT] = m_imgDisplay.gGetRoi();
+}
+
+
+
+
+void CjGaugeDlg::OnBnClickedBtnMeasure()
+{
+	//거리를 측정
+	//process.findDistance(*m_lineBase, roiRect[0].top, *m_LinePlate, &m_imgDisplay);
 }
