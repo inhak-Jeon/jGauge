@@ -128,6 +128,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
+	loadCfg();	//Cfg파일에서 로드
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
 	this->InitCam();//카메라 초기화
@@ -305,11 +306,11 @@ void CjGaugeDlg::OnBnClickedBtnCapture()
 	{
 		m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
 		
-		m_btnCapture.SetWindowTextW(CString("CAPTURE"));
+		m_btnCapture.SetWindowTextW(CString("Grab"));
 	}
 	else {
 		m_cam->stopGrabbing();
-		m_btnCapture.SetWindowTextW(CString("restart"));
+		m_btnCapture.SetWindowTextW(CString("Live"));
 	}
 	isStopCam = !isStopCam;
 }
@@ -415,6 +416,7 @@ void CjGaugeDlg::testFunc()
 void CjGaugeDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
+	this->saveCfg();
 	delete m_logResult;
 	delete m_cam;
 }
@@ -455,11 +457,15 @@ void CjGaugeDlg::saveCfg()
 
 	gCfg cfg(path, key);
 
-	//rects 정보 로드
+	//ScaleFactor
+	cfg.SerGet(0, m_dsf, _T("ScaleFactor"));
+
+	//rects 정보
+	string strRects[4] = { "Plate_Left", "Plate_Right", "FLAG_LEFT", "FLAG_RIGHT" };
+	//rects 정보
 	for (int i = 0; i < MAX_OBJECT; i++)
 	{
-		CRect m_rectRoi[MAX_OBJECT];
-		cfg.SerGet(0, m_rectRoi[i], gString("m_rectRoi" + i).toCString());
+		cfg.SerGet(0, m_rectRoi[i], gString(strRects[i]).toCString());
 	}
 }
 
@@ -470,11 +476,14 @@ void CjGaugeDlg::loadCfg()
 
 	gCfg cfg(path, key);
 
-	//rects 정보 로드
+	//ScaleFactor
+	cfg.SerGet(0, m_dsf, _T("ScaleFactor"));
+
+	string strRects[4] = {"Plate_Left", "Plate_Right", "FLAG_LEFT", "FLAG_RIGHT" };
+	//rects 정보
 	for (int i = 0; i < MAX_OBJECT; i++)
 	{
-		CRect m_rectRoi[MAX_OBJECT];
-		cfg.SerGet(1, m_rectRoi[i], gString("m_rectRoi" + i).toCString());
+		cfg.SerGet(1, m_rectRoi[i], gString(strRects[i]).toCString());
 	}
 }
 
