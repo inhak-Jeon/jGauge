@@ -70,6 +70,7 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
 	DDX_Control(pDX, IDC_INFO_DISTANCE_MM, m_infoDistanceMM);
 	DDX_Control(pDX, IDC_INFO_DISTANCE_PIXEL, m_infoDistancePixel);
+	DDX_Control(pDX, IDC_BTN_CAPTURE, m_btnCapture);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -286,10 +287,20 @@ bool CjGaugeDlg::LineIsNull(Line line)
 		return false;
 }
 
-
+bool isStopCam = false;
 void CjGaugeDlg::OnBnClickedBtnCapture()
 {
-	m_cam->stopGrabbing();
+	if (isStopCam)
+	{
+		m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
+		
+		m_btnCapture.SetWindowTextW(CString("CAPTURE"));
+	}
+	else {
+		m_cam->stopGrabbing();
+		m_btnCapture.SetWindowTextW(CString("restart"));
+	}
+	isStopCam = !isStopCam;
 }
 
 

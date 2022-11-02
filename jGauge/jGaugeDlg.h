@@ -79,4 +79,5 @@ public:
 	// pixel단위 거리정보입니다.
 	CStatic m_infoDistancePixel;
 	CStatic m_infoDistanceMM;
+	CButton m_btnCapture;
 };
