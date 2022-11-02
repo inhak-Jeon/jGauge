@@ -35,6 +35,8 @@ public:
 // 구현입니다.
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+//	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
@@ -47,6 +49,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -64,6 +67,8 @@ CjGaugeDlg::CjGaugeDlg(CWnd* pParent /*=NULL*/)
 	m_linePlate.t = 0;
 	m_linePlate.a = 0;
 	m_linePlate.b = 0;
+	m_dsf = 0.032822757111;
+	//m_process.init(&m_imgDisplay);
 }
 
 void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
@@ -86,6 +91,9 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_MEASURE, &CjGaugeDlg::OnBnClickedBtnMeasure)
 	ON_BN_CLICKED(IDC_BTN_CAPTURE, &CjGaugeDlg::OnBnClickedBtnCapture)
 	ON_WM_DESTROY()
+	ON_WM_TIMER()
+	ON_BN_CLICKED(IDC_BTN_IMGSAVE, &CjGaugeDlg::OnBnClickedBtnImgsave)
+	ON_BN_CLICKED(IDC_BTN_IMGLOAD, &CjGaugeDlg::OnBnClickedBtnImgload)
 END_MESSAGE_MAP()
 
 
@@ -125,6 +133,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	this->InitCam();//카메라 초기화
 	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log");
 
+	SetTimer(0, 100, NULL);
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -168,7 +177,6 @@ void CjGaugeDlg::_callback(unsigned char *imgPtr)
 
 	OnBnClickedBtnMeasure();
 
-	Process	process(&m_imgDisplay);
 }
 
 void CjGaugeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -211,12 +219,6 @@ void CjGaugeDlg::OnPaint()
 	{
 		CDialogEx::OnPaint();
 	}
-
-	m_imgDisplay.gDrawClear();
-	//그리기
-	DrawRects();
-	DrawEdge();
-	DrawDiffPixels();
 }
 
 // 사용자가 최소화된 창을 끄는 동안에 커서가 표시되도록 시스템에서
@@ -282,32 +284,10 @@ void CjGaugeDlg::DrawDiffPixels() {
 }
 
 void CjGaugeDlg::DrawInfomation() {
-	string str = gString(m_measuredInfo[PLATE_RIGHT].distancePixel*m_dsf);
-	m_labelInfo.SetText(str);
+	string strInfo = gString(m_measuredInfo[PLATE_RIGHT].distancePixel*m_dsf);
+	m_labelInfo.SetText(strInfo);
 
-	m_logResult->info("{}",str);
-
-	//double data[4];
-	//double data[0] = getDistance(obj[1], obj[0]);
-	//double data[1] = getDistance(obj[2], obj[0]);
-	//double data[2] = getDistance(obj[3], obj[0]);
-	//double data[3] = getDistance(obj[4], obj[0]);
-
-	//CLabel label;
-	//for (int i = 0; i < 4; i++) {
-	//	label.insert("resut" + str[i] + data[i]);
-	//}
-
-
-	//gString str;
-	//str = gString("DISTANCE : ") + gString(m_measuredInfo[PLATE_RIGHT].distancePixel * m_ScaleFactor) + gString("(pixel)");
-	//m_staticInfoPlateRight.SetWindowTextW(str.toCString());
-
-	//str = gString("DISTANCE : ") + gString(m_measuredInfo[FLAG_LEFT].distancePixel * m_ScaleFactor) + gString("(pixel)");
-	//m_staticInfoFlagLeft.SetWindowTextW(str.toCString());
-
-	//str = gString("DISTANCE : ") + gString(m_measuredInfo[FLAG_RIGHT].distancePixel  * m_ScaleFactor) + gString("(pixel)");
-	//m_staticInfoFlagRight.SetWindowTextW(str.toCString());
+	m_logResult->info("{}", strInfo);
 }
 
 bool CjGaugeDlg::LineIsNull(Line line)
@@ -361,9 +341,14 @@ void CjGaugeDlg::OnBnClickedBtnRoi4()
 
 void CjGaugeDlg::OnBnClickedBtnMeasure()
 {
+	//testFunc();
+	//return;
+
+	//for(int k=0; k)
+
 	if (m_rectRoi[1].Width() == 0)	return;
-	//Plate-left Roi
 	Process process(&m_imgDisplay);
+	//Plate-left Roi
 	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
 	//Plate-right Roi
 	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_linePlate.t, &m_linePlate.a, &m_linePlate.b);
@@ -388,14 +373,44 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 		m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y, m_lineBase);
 	DrawInfomation();
 
-	DrawEdge();
+	//DrawEdge();
+	DrawRects();
 	m_imgDisplay.UpdateDisplay();
-	//Invalidate();
-//	OnPaint();
 
 }
 
+#include "gEdge.h"
+void CjGaugeDlg::testFunc()
+{
+	int nWidth = m_imgDisplay.gGetWidth();
+	int nHeight = m_imgDisplay.gGetHeight();
+	int nPitch = m_imgDisplay.gGetPitch();
+	unsigned char* fm = m_imgDisplay.gGetImgPtr();
 
+	CRect rect = m_imgDisplay.gGetRoi();
+
+	int* pProj= new int[rect.Width()]{ 0, };
+	for (int i = rect.left; i < rect.right; i++) {
+		for (int j = rect.top; j < rect.bottom; j++) {
+			pProj[i - rect.left] += fm[j*nPitch + i];
+		}
+	}
+
+	double dOff = 43.5;
+	double dEdge = 0;
+	int nSlope = 0;
+	gEdge edge;
+	gEdge::EdgeType opt= gEdge::EdgeType::W2B;
+	for (int i = 0; i < 50; i ++) {
+		int k = int(i*dOff);
+		edge.LineFindEdge(opt, int(dOff), pProj + k, &dEdge, &nSlope);
+		cout << dEdge + k << endl;
+	}
+
+
+
+	delete pProj;
+}
 
 void CjGaugeDlg::OnDestroy()
 {
@@ -403,3 +418,65 @@ void CjGaugeDlg::OnDestroy()
 	delete m_logResult;
 	delete m_cam;
 }
+
+
+void CjGaugeDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	int pixel;
+	CPoint ptImg, ptMouse;
+	string info;
+	CString str;
+	pixel = m_imgDisplay.gGetPixelInfo(ptMouse, ptImg);
+	info = "x: " + to_string(ptImg.x) + " y: " + to_string(ptImg.y) + " pixel: " + to_string(pixel);
+	//m_logger.info("{}", info);
+	str = info.c_str();
+	GetDlgItem(IDC_STATIC_MOUSE_INFO)->SetWindowTextW(str);
+
+
+	CDialogEx::OnTimer(nIDEvent);
+}
+
+
+void CjGaugeDlg::OnBnClickedBtnImgsave()
+{
+	m_imgDisplay.gSave("c:/glim/jGauge.bmp", true);
+}
+
+
+void CjGaugeDlg::OnBnClickedBtnImgload()
+{
+	m_imgDisplay.gLoad("c:/glim/jGauge.bmp");
+}
+
+void CjGaugeDlg::saveCfg()
+{
+	CString path = _T("c:/glim/jGauge.ini");
+	CString key = _T("c:/glim/jGauge.ini");
+
+	gCfg cfg(path, key);
+
+	//rects 정보 로드
+	for (int i = 0; i < MAX_OBJECT; i++)
+	{
+		CRect m_rectRoi[MAX_OBJECT];
+		cfg.SerGet(0, m_rectRoi[i], gString("m_rectRoi" + i).toCString());
+	}
+}
+
+void CjGaugeDlg::loadCfg()
+{
+	CString path = _T("c:/glim/jGauge.ini");
+	CString key = _T("c:/glim/jGauge.ini");
+
+	gCfg cfg(path, key);
+
+	//rects 정보 로드
+	for (int i = 0; i < MAX_OBJECT; i++)
+	{
+		CRect m_rectRoi[MAX_OBJECT];
+		cfg.SerGet(1, m_rectRoi[i], gString("m_rectRoi" + i).toCString());
+	}
+}
+
+
+

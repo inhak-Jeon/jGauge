@@ -7,6 +7,13 @@
 #include "Process.h"
 
 // Process
+//Process::Process()
+//{
+//	m_nWidth = 0;
+//	m_nHeight = 0;
+//	m_nPitch = 0;
+//	m_fm = nullptr;
+//}
 Process::Process(unsigned char* fm, int nWidth, int nHeight, int nPitch)
 {
 	m_nWidth = nWidth;
@@ -25,6 +32,21 @@ Process::Process(gImage* pGImage)
 Process::~Process()
 {
 }
+
+//void Process::init(unsigned char* fm, int nWidth, int nHeight, int nPitch)
+//{
+//	m_nWidth = nWidth;
+//	m_nHeight = nHeight;
+//	m_nPitch = nPitch;
+//	m_fm = fm;
+//}
+//void Process::init(gImage* pGImage)
+//{
+//	m_nWidth = pGImage->gGetWidth();
+//	m_nHeight = pGImage->gGetHeight();
+//	m_nPitch = pGImage->gGetPitch();
+//	m_fm = pGImage->gGetImgPtr();
+//}
 
 
 // Process 멤버 함수
@@ -46,6 +68,9 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 		pX = new double[rect.Height()];
 		pY = new double[rect.Height()];
 
+		
+
+
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++)
 			{
@@ -53,10 +78,12 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 			}
 
 			edge.LineFindEdge(edgeoption, rect.Width(), pData, &dEdge, &nSlope, &dir);
+			
 
 
 			pX[j - rect.top] = dEdge + rect.left;
 			pY[j - rect.top] = j;	//+rect.top 상태좌표를 절대좌표로 변환하기 위해사용
+			/*m_fm[int(pY[j - rect.top]) * m_nPitch + int(pX[j - rect.top])] = 0xff;*/
 		}
 
 		double dErrorLimit = 1;

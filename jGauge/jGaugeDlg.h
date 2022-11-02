@@ -11,10 +11,13 @@
 #include "MeasuredInfo.h"
 #include "Label.h"
 #include "gLogger.h"
+#include "gCfg.h"
+#include "Process.h"
 #pragma comment(lib, "/gImage.lib")  
 #pragma comment(lib, "/gLogger.lib")
 #pragma comment(lib, "/gCam.lib")
 #pragma comment(lib, "/gEdge.lib")
+#pragma comment(lib, "/gCfg.lib")
 
 #define CAM_WIDTH 2448
 #define CAM_HEIGHT 2048
@@ -37,7 +40,8 @@ private:
 	MeasuredInfo m_measuredInfo[MAX_OBJECT];
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
-	double m_dsf = 0.0458;	//scale factor : mm/pixel
+	double m_dsf ;	//scale factor : mm/pixel	
+
 	gLogger *m_logResult;
 
 // 생성입니다.
@@ -66,6 +70,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+	//Process m_process;
 	gCamDahua *m_cam;
 	gImage m_imgDisplay;
 //	CStatic m_infoScale;
@@ -75,6 +80,7 @@ public:
 	void DrawDiffPixels();
 	void DrawInfomation();
 	bool LineIsNull(Line line);
+	void testFunc();
 	afx_msg void OnBnClickedBtnRoi2();
 	afx_msg void OnBnClickedBtnRoi3();
 	afx_msg void OnBnClickedBtnRoi4();
@@ -85,4 +91,9 @@ public:
 	CButton m_btnCapture;
 	CLabel m_labelInfo;
 	afx_msg void OnDestroy();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnBnClickedBtnImgsave();
+	afx_msg void OnBnClickedBtnImgload();
+	void saveCfg();
+	void loadCfg();
 };
