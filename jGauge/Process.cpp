@@ -5,6 +5,8 @@
 #include "jGauge.h"
 #include "gEdge.h"
 #include "Process.h"
+#include <algorithm>
+#include <math.h>
 
 Process::Process(unsigned char* fm, int nWidth, int nHeight, int nPitch)
 {
@@ -71,8 +73,6 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 	delete pY, pX, pData;
 }
 
-#include <algorithm>
-#include <math.h>
 int Process::getEdgePoint(CRect rect) {
 	gEdge edge;
 
@@ -98,15 +98,21 @@ int Process::getEdgePoint(CRect rect) {
 
 		pXInt[j - rect.top] = dEdge + rect.left;
 
-		//this->m_fm[int(pY[j - rect.top] *m_nPitch + pX[j - rect.top])] = 255;
+		/* edge 표시하기 위한 테스트 코드*/
+		m_fm[int(j*m_nPitch+(dEdge + rect.left))] = 0xff;
+		//this->m_fm[int((j - rect.top) *m_nPitch + pX[j - rect.top])] = 255;
 	}
 	//pX중 최빈값의 x를 계산
-	sort(pXInt, pXInt+rect.Height());
+
+
+
+	//sort(pXInt, pXInt+rect.Height());
 
 	double result = pXInt[rect.Height() / 2]; //중앙값 edge
 	delete pX, pData;
 	return result;
 }
+
 
 /*점과 직선사이의 거리*/
 double Process::measureDistance(double x, double y, Line line)

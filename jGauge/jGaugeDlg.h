@@ -76,9 +76,10 @@ public:
 //	CStatic m_infoScale;
 	afx_msg void OnBnClickedBtnRoi1();
 	void DrawRects();
-	void DrawEdge();
+	void DrawEdge(bool overRect=false);
 	void DrawDiffPixels();
 	void DrawInfomation();
+	gString getStringDistance(int i);
 	bool LineIsNull(Line line);
 	void testFunc();
 	afx_msg void OnBnClickedBtnRoi2();
@@ -96,4 +97,5 @@ public:
 	afx_msg void OnBnClickedBtnImgload();
 	void saveCfg();
 	void loadCfg();
+	CButton m_checkSimple;
 };

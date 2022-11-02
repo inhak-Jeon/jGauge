@@ -78,6 +78,7 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 	//  DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
 	DDX_Control(pDX, IDC_BTN_CAPTURE, m_btnCapture);
 	DDX_Control(pDX, IDC_STATIC_INFO, m_labelInfo);
+	DDX_Control(pDX, IDC_CHECK_SIMPLE, m_checkSimple);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -242,35 +243,66 @@ void CjGaugeDlg::DrawRects() {
 		}
 	}
 }
-void CjGaugeDlg::DrawEdge()
+void CjGaugeDlg::DrawEdge(bool overRect)
 {
 	double t, a, b;
 	CPoint p1, p2;
-	//BaseLine 엣지 그리기
-	if ( !LineIsNull(m_lineBase) )
+
+	if (overRect)
 	{
-		t = m_lineBase.t;
-		a = m_lineBase.a;
-		b = m_lineBase.b;
-		p1.x = 0;
-		p2.x = m_imgDisplay.gGetWidth();
-		p1.y = (a*p1.x + b) / t;
-		p2.y = (a*p2.x + b) / t;
-		m_imgDisplay.gDrawLine(p1, p2);
-	}
-	//PlateLine 엣지 그리기
-	if (!LineIsNull(m_linePlate))
-	{
-		t = m_linePlate.t;
-		a = m_linePlate.a;
-		b = m_linePlate.b;
-		p1.x = 0;
-		p2.x = m_imgDisplay.gGetWidth();
-		p1.y = (a*p1.x + b) / t;
-		p2.y = (a*p2.x + b) / t;
-		m_imgDisplay.gDrawLine(p1, p2);
+		//BaseLine 엣지 그리기
+		if (!LineIsNull(m_lineBase))
+		{
+			t = m_lineBase.t;
+			a = m_lineBase.a;
+			b = m_lineBase.b;
+			p1.y = 0;
+			p2.y = m_imgDisplay.gGetHeight();
+			p1.x = (t*p1.y - b) / a;
+			p2.x = (t*p2.y - b) / a;
+			m_imgDisplay.gDrawLine(p1, p2);
+		}
+		//PlateLine 엣지 그리기
+		if (!LineIsNull(m_linePlate))
+		{
+			t = m_linePlate.t;
+			a = m_linePlate.a;
+			b = m_linePlate.b;
+			p1.y = 0;
+			p2.y = m_imgDisplay.gGetHeight();
+			p1.x = (t*p1.y - b) / a;
+			p2.x = (t*p2.y - b) / a;
+			m_imgDisplay.gDrawLine(p1, p2);
+		}
+	}else {
+		//BaseLine 엣지 그리기
+		if (!LineIsNull(m_lineBase))
+		{
+			t = m_lineBase.t;
+			a = m_lineBase.a;
+			b = m_lineBase.b;
+			p1.y = m_rectRoi[0].top;
+			p2.y = m_rectRoi[0].bottom;
+			p1.x = (t*p1.y - b) / a;
+			p2.x = (t*p2.y - b) / a;
+			m_imgDisplay.gDrawLine(p1, p2);
+		}
+		//PlateLine 엣지 그리기
+		if (!LineIsNull(m_linePlate))
+		{
+			t = m_linePlate.t;
+			a = m_linePlate.a;
+			b = m_linePlate.b;
+			p1.y = m_rectRoi[1].top;
+			p2.y = m_rectRoi[1].bottom;
+			p1.x = (t*p1.y - b) / a;
+			p2.x = (t*p2.y - b) / a;
+			m_imgDisplay.gDrawLine(p1, p2);
+		}
 	}
 }
+
+
 void CjGaugeDlg::DrawDiffPixels() {
 	m_imgDisplay.gDrawLine(CPoint(m_measuredInfo[PLATE_RIGHT].x, m_measuredInfo[PLATE_RIGHT].y),
 		CPoint(m_measuredInfo[PLATE_RIGHT].x- m_measuredInfo[PLATE_RIGHT].distancePixel, m_measuredInfo[PLATE_RIGHT].y), COLOR_RED, 2);
@@ -285,10 +317,30 @@ void CjGaugeDlg::DrawDiffPixels() {
 }
 
 void CjGaugeDlg::DrawInfomation() {
-	string strInfo = gString(m_measuredInfo[PLATE_RIGHT].distancePixel*m_dsf);
-	m_labelInfo.SetText(strInfo);
+	string strDistance = "";
+	for (int i = PLATE_RIGHT; i <= FLAG_RIGHT; i++)
+	{
+		strDistance.append(getStringDistance(i));
+		strDistance.append(" (mm)\n\n");
+	}
 
-	m_logResult->info("{}", strInfo);
+	//design 변경
+	m_labelInfo.SetText(strDistance);
+	m_labelInfo.SetFontSize(20);
+	//로그출력
+	m_logResult->info("{}", strDistance);
+}
+
+gString CjGaugeDlg::getStringDistance(int i) {
+	double dResult = m_measuredInfo[i].distancePixel*m_dsf;
+	if (m_checkSimple.GetCheck())
+	{
+		return gString().format("{:0.2f}", dResult);
+	}
+	else
+	{
+		return gString(dResult);
+	}
 }
 
 bool CjGaugeDlg::LineIsNull(Line line)
@@ -319,25 +371,21 @@ void CjGaugeDlg::OnBnClickedBtnCapture()
 void CjGaugeDlg::OnBnClickedBtnRoi1()
 {
 	m_rectRoi[PLATE_LEFT] = m_imgDisplay.gGetRoi();
-	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi2()
 {
 	m_rectRoi[PLATE_RIGHT] = m_imgDisplay.gGetRoi();
-	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
 	m_rectRoi[FLAG_LEFT] = m_imgDisplay.gGetRoi();
-	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi4()
 {
 	m_rectRoi[FLAG_RIGHT] = m_imgDisplay.gGetRoi();
-	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnMeasure()
@@ -372,9 +420,9 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	m_measuredInfo[FLAG_RIGHT].x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT]);	// x = (ty-b)/a
 	m_measuredInfo[FLAG_RIGHT].distancePixel = process.measureDistance(
 		m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y, m_lineBase);
-	DrawInfomation();
 
-	//DrawEdge();
+	DrawInfomation();
+	DrawEdge();
 	DrawRects();
 	m_imgDisplay.UpdateDisplay();
 
@@ -461,7 +509,7 @@ void CjGaugeDlg::saveCfg()
 	cfg.SerGet(0, m_dsf, _T("ScaleFactor"));
 
 	//rects 정보
-	string strRects[4] = { "Plate_Left", "Plate_Right", "FLAG_LEFT", "FLAG_RIGHT" };
+	string strRects[4] = { "PLATE_LEFT", "PLATE_RIGHT", "FLAG_LEFT", "FLAG_RIGHT" };
 	//rects 정보
 	for (int i = 0; i < MAX_OBJECT; i++)
 	{
@@ -477,9 +525,9 @@ void CjGaugeDlg::loadCfg()
 	gCfg cfg(path, key);
 
 	//ScaleFactor
-	cfg.SerGet(0, m_dsf, _T("ScaleFactor"));
+	cfg.SerGet(1, m_dsf, _T("ScaleFactor"));
 
-	string strRects[4] = {"Plate_Left", "Plate_Right", "FLAG_LEFT", "FLAG_RIGHT" };
+	string strRects[4] = { "PLATE_LEFT", "PLATE_RIGHT", "FLAG_LEFT", "FLAG_RIGHT" };
 	//rects 정보
 	for (int i = 0; i < MAX_OBJECT; i++)
 	{
