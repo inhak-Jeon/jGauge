@@ -6,7 +6,6 @@
 #include "gEdge.h"
 #include "Process.h"
 
-
 // Process
 Process::Process(unsigned char* fm, int nWidth, int nHeight, int nPitch)
 {
@@ -105,11 +104,8 @@ int Process::getEdgePoint(CRect rect) {
 }
 
 /*점과 직선사이의 거리*/
-double Process::measureDistance(CPoint point, Line line)
+double Process::measureDistance(double x, double y, Line line)
 {
-	double x = point.x;
-	double y = point.y;
-
 					//점과 직선사이의 거리  d = |ax0+by0+b| / root(a^2+b^2)
 	return abs(line.a * x + (-line.t)*y + line.b) / sqrt(pow(line.a, 2) + pow(line.t, 2));
 }

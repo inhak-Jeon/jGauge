@@ -9,6 +9,8 @@
 #include "gString.h"
 #include "Line.h"
 #include "MeasuredInfo.h"
+#include "Label.h"
+#include "gLogger.h"
 #pragma comment(lib, "/gImage.lib")  
 #pragma comment(lib, "/gLogger.lib")
 #pragma comment(lib, "/gCam.lib")
@@ -35,6 +37,8 @@ private:
 	MeasuredInfo m_measuredInfo[MAX_OBJECT];
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
+	double m_dsf = 0.0458;	//scale factor : mm/pixel
+	gLogger *m_logResult;
 
 // 생성입니다.
 public:
@@ -64,11 +68,12 @@ protected:
 public:
 	gCamDahua *m_cam;
 	gImage m_imgDisplay;
-	CStatic m_infoScale;
+//	CStatic m_infoScale;
 	afx_msg void OnBnClickedBtnRoi1();
 	void DrawRects();
 	void DrawEdge();
 	void DrawDiffPixels();
+	void DrawInfomation();
 	bool LineIsNull(Line line);
 	afx_msg void OnBnClickedBtnRoi2();
 	afx_msg void OnBnClickedBtnRoi3();
@@ -77,7 +82,7 @@ public:
 	afx_msg void OnBnClickedBtnCapture();
 	// mm단위 거리정보입니다.
 	// pixel단위 거리정보입니다.
-	CStatic m_infoDistancePixel;
-	CStatic m_infoDistanceMM;
 	CButton m_btnCapture;
+	CLabel m_labelInfo;
+	afx_msg void OnDestroy();
 };

@@ -18,7 +18,7 @@ public:
 	
 	void getEdge(CRect rect, double *t, double *a, double *b);
 	int getEdgePoint(CRect rect);
-	double measureDistance(CPoint point, Line line);
+	double measureDistance(double x, double y, Line line);
 };
 
 

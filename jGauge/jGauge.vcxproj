@@ -209,6 +209,7 @@ for /F "tokens=5 delims= " %%a in ('dir "$(TargetDir)" ^| findstr ".dll"') do fo
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Label.h" />
     <ClInclude Include="MeasuredInfo.h" />
     <ClInclude Include="jGauge.h" />
     <ClInclude Include="jGaugeDlg.h" />
@@ -221,6 +222,7 @@ for /F "tokens=5 delims= " %%a in ('dir "$(TargetDir)" ^| findstr ".dll"') do fo
   <ItemGroup>
     <ClCompile Include="jGauge.cpp" />
     <ClCompile Include="jGaugeDlg.cpp" />
+    <ClCompile Include="Label.cpp" />
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

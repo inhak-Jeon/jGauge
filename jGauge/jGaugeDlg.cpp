@@ -7,6 +7,9 @@
 #include "jGaugeDlg.h"
 #include "afxdialogex.h"
 #include "Process.h"
+#include "Label.h"
+#include "gLogger.h"
+
 #include <math.h>
 
 #ifdef _DEBUG
@@ -67,10 +70,9 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATIC_DISPLAY, m_imgDisplay);
-	DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
-	DDX_Control(pDX, IDC_INFO_DISTANCE_MM, m_infoDistanceMM);
-	DDX_Control(pDX, IDC_INFO_DISTANCE_PIXEL, m_infoDistancePixel);
+	//  DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
 	DDX_Control(pDX, IDC_BTN_CAPTURE, m_btnCapture);
+	DDX_Control(pDX, IDC_STATIC_INFO, m_labelInfo);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -83,6 +85,7 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_ROI4, &CjGaugeDlg::OnBnClickedBtnRoi4)
 	ON_BN_CLICKED(IDC_BTN_MEASURE, &CjGaugeDlg::OnBnClickedBtnMeasure)
 	ON_BN_CLICKED(IDC_BTN_CAPTURE, &CjGaugeDlg::OnBnClickedBtnCapture)
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -120,7 +123,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
 	this->InitCam();//카메라 초기화
-	
+	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log");
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -135,35 +138,35 @@ void CjGaugeDlg::InitCam() {
 	m_cam = new gCamDahua(CAM_NAME);
 	m_cam->init(G_CAM_NONE);	// 해당캠 초기화
 
-	gLogger logger("ihj", "C:/Users/USER/Documents/Visual Studio 2015/Projects/ihjExam/Log/log.log", true, 1024 * 30000, 5);
+	//gLogger logger("ihj", "C:/Users/USER/Documents/Visual Studio 2015/Projects/ihjExam/Log/log.log", true, 1024 * 30000, 5);
 	//캠 그랩
 	bool bErrChk = m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
-	if (bErrChk == FALSE)
-	{
-		logger.info("문제있음");
-	}
-	else
-		logger.info("문제없음");
+	//if (bErrChk == FALSE)
+	//{
+	//	logger.info("문제있음");
+	//}
+	//else
+	//	logger.info("문제없음");
 
-	unsigned char** pImgData = m_cam->getPointer();	//grab된 프레임의 이미지 주소를 가져옵니다. 실패시 nullptr
+	//unsigned char** pImgData = m_cam->getPointer();	//grab된 프레임의 이미지 주소를 가져옵니다. 실패시 nullptr
 
-	if (pImgData == nullptr)
-	{
-		logger.info("camera null error");
-	}
-	else
-		logger.info("camera started");
+	//if (pImgData == nullptr)
+	//{
+	//	logger.info("camera null error");
+	//}
+	//else
+	//	logger.info("camera started");
 
-	logger.info("camera: {}, {}, {}", CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
-	logger.end("카메라 연결까지 걸리는 시간 : ");
+	//logger.info("camera: {}, {}, {}", CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+	//logger.end("카메라 연결까지 걸리는 시간 : ");
 	
-	gString strScale= gString(CString("Scale : "))+gString(CAM_WIDTH) +gString(CString(" x "))+gString(CAM_HEIGHT);
-	m_infoScale.SetWindowTextW(strScale.toCString());
 }
 void CjGaugeDlg::_callback(unsigned char *imgPtr)
 {
 	//카메라를 초기화합니다.
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+
+	OnBnClickedBtnMeasure();
 
 	Process	process(&m_imgDisplay);
 }
@@ -278,6 +281,34 @@ void CjGaugeDlg::DrawDiffPixels() {
 		CPoint(m_measuredInfo[FLAG_RIGHT].x - m_measuredInfo[FLAG_RIGHT].distancePixel, m_measuredInfo[FLAG_RIGHT].y), COLOR_GREEN, 2);
 }
 
+void CjGaugeDlg::DrawInfomation() {
+	string str = gString(m_measuredInfo[PLATE_RIGHT].distancePixel*m_dsf);
+	m_labelInfo.SetText(str);
+
+	m_logResult->info("{}",str);
+
+	//double data[4];
+	//double data[0] = getDistance(obj[1], obj[0]);
+	//double data[1] = getDistance(obj[2], obj[0]);
+	//double data[2] = getDistance(obj[3], obj[0]);
+	//double data[3] = getDistance(obj[4], obj[0]);
+
+	//CLabel label;
+	//for (int i = 0; i < 4; i++) {
+	//	label.insert("resut" + str[i] + data[i]);
+	//}
+
+
+	//gString str;
+	//str = gString("DISTANCE : ") + gString(m_measuredInfo[PLATE_RIGHT].distancePixel * m_ScaleFactor) + gString("(pixel)");
+	//m_staticInfoPlateRight.SetWindowTextW(str.toCString());
+
+	//str = gString("DISTANCE : ") + gString(m_measuredInfo[FLAG_LEFT].distancePixel * m_ScaleFactor) + gString("(pixel)");
+	//m_staticInfoFlagLeft.SetWindowTextW(str.toCString());
+
+	//str = gString("DISTANCE : ") + gString(m_measuredInfo[FLAG_RIGHT].distancePixel  * m_ScaleFactor) + gString("(pixel)");
+	//m_staticInfoFlagRight.SetWindowTextW(str.toCString());
+}
 
 bool CjGaugeDlg::LineIsNull(Line line)
 {
@@ -307,29 +338,30 @@ void CjGaugeDlg::OnBnClickedBtnCapture()
 void CjGaugeDlg::OnBnClickedBtnRoi1()
 {
 	m_rectRoi[PLATE_LEFT] = m_imgDisplay.gGetRoi();
-	OnPaint();
+	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi2()
 {
 	m_rectRoi[PLATE_RIGHT] = m_imgDisplay.gGetRoi();
-	OnPaint();
+	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi3()
 {
 	m_rectRoi[FLAG_LEFT] = m_imgDisplay.gGetRoi();
-	OnPaint();
+	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnRoi4()
 {
 	m_rectRoi[FLAG_RIGHT] = m_imgDisplay.gGetRoi();
-	OnPaint();
+	Invalidate();
 }
 
 void CjGaugeDlg::OnBnClickedBtnMeasure()
 {
+	if (m_rectRoi[1].Width() == 0)	return;
 	//Plate-left Roi
 	Process process(&m_imgDisplay);
 	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
@@ -340,36 +372,34 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	m_measuredInfo[PLATE_RIGHT].y = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
 	m_measuredInfo[PLATE_RIGHT].x = (m_linePlate.t * m_measuredInfo[PLATE_RIGHT].y - m_linePlate.b) / m_linePlate.a;
 	m_measuredInfo[PLATE_RIGHT].distancePixel = process.measureDistance(
-		CPoint(m_measuredInfo[PLATE_RIGHT].x, m_measuredInfo[PLATE_RIGHT].y), m_lineBase);
+		m_measuredInfo[PLATE_RIGHT].x, m_measuredInfo[PLATE_RIGHT].y, m_lineBase);
 
-		/*gString str = gString("DISTANCE : ") + gString(int(d)) + gString("(pixel)");
-		m_infoDistancePixel.SetWindowTextW(str.toCString());*/
-
-		//TODO 테스트용 그리기
-		/*m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_RED, 5);	
-		m_imgDisplay.gDrawLine(CPoint(x-d, y), CPoint(x, y), COLOR_RED, 2);*/
 
 	//flag-left point
 	m_measuredInfo[FLAG_LEFT].y = m_rectRoi[FLAG_LEFT].CenterPoint().y;
 	m_measuredInfo[FLAG_LEFT].x = process.getEdgePoint(m_rectRoi[FLAG_LEFT]);	// x = (ty-b)/a
 	m_measuredInfo[FLAG_LEFT].distancePixel = process.measureDistance(
-		CPoint(m_measuredInfo[FLAG_LEFT].x, m_measuredInfo[FLAG_LEFT].y), m_lineBase);
-
-		//TODO 테스트용 그리기
-		/*m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_BLUE, 5);
-		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_BLUE, 2);*/
-
-
+		m_measuredInfo[FLAG_LEFT].x, m_measuredInfo[FLAG_LEFT].y, m_lineBase);
 
 	//FLAG_Left 까지의 거리 구하기
 	m_measuredInfo[FLAG_RIGHT].y = m_rectRoi[FLAG_RIGHT].CenterPoint().y;
 	m_measuredInfo[FLAG_RIGHT].x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT]);	// x = (ty-b)/a
 	m_measuredInfo[FLAG_RIGHT].distancePixel = process.measureDistance(
-		CPoint(m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y), m_lineBase);
+		m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y, m_lineBase);
+	DrawInfomation();
 
-		//TODO 테스트용 그리기
-		/*m_imgDisplay.gDrawLine(CPoint(x, y), CPoint(x, y), COLOR_GREEN, 5);
-		m_imgDisplay.gDrawLine(CPoint(x - d, y), CPoint(x, y), COLOR_GREEN, 2);*/
-	OnPaint();
+	DrawEdge();
+	m_imgDisplay.UpdateDisplay();
+	//Invalidate();
+//	OnPaint();
+
 }
 
+
+
+void CjGaugeDlg::OnDestroy()
+{
+	CDialogEx::OnDestroy();
+	delete m_logResult;
+	delete m_cam;
+}
