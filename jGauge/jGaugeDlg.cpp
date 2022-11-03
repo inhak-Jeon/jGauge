@@ -328,7 +328,7 @@ void CjGaugeDlg::DrawInfomation() {
 	m_labelInfo.SetText(strDistance);
 	m_labelInfo.SetFontSize(20);
 	//로그출력
-	m_logResult->info("{}", strDistance);
+	m_logResult->info("{}", getStringDistance(FLAG_LEFT));
 }
 
 gString CjGaugeDlg::getStringDistance(int i) {

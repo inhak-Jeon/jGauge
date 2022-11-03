@@ -19,6 +19,7 @@ public:
 	
 	void getEdge(CRect rect, double *t, double *a, double *b);
 	int getEdgePoint(CRect rect);
+	double findMedianValue(int * arr, int size);
 	double measureDistance(double x, double y, Line line);
 };
 

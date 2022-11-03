@@ -77,7 +77,6 @@ int Process::getEdgePoint(CRect rect) {
 	gEdge edge;
 
 	int *pData; //세로1줄(1열) 짜리 배열
-	double *pX;
 	int *pXInt;
 	double dEdge;
 	int dir;
@@ -86,7 +85,6 @@ int Process::getEdgePoint(CRect rect) {
 	gEdge::EdgeType edgeoption = gEdge::EdgeType::ABS;
 
 	pData = new int[rect.Width()]; //가로1줄(1열) 짜리 배열
-	pX = new double[rect.Height()];
 	pXInt = new int[rect.Height()];
 	
 	for (int j = rect.top; j < rect.bottom; j++) {
@@ -100,19 +98,20 @@ int Process::getEdgePoint(CRect rect) {
 
 		/* edge 표시하기 위한 테스트 코드*/
 		m_fm[int(j*m_nPitch+(dEdge + rect.left))] = 0xff;
-		//this->m_fm[int((j - rect.top) *m_nPitch + pX[j - rect.top])] = 255;
 	}
-	//pX중 최빈값의 x를 계산
 
+	double result = findMedianValue(pXInt, rect.Height()); //edge들의 중앙값
+	m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
 
-
-	//sort(pXInt, pXInt+rect.Height());
-
-	double result = pXInt[rect.Height() / 2]; //중앙값 edge
-	delete pX, pData;
+	delete pData, pXInt;
 	return result;
 }
 
+double Process::findMedianValue(int *arr, int size)
+{
+	sort(arr, arr+size);
+	return arr[size / 2];
+}
 
 /*점과 직선사이의 거리*/
 double Process::measureDistance(double x, double y, Line line)
