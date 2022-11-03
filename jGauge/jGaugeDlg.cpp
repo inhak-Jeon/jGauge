@@ -345,10 +345,10 @@ void CjGaugeDlg::DrawInfomation() {
 				break;
 		}
 	}
-	//로그출력
-	m_logResult->info("PLATE_RIGHT {}", GetMM(m_measuredInfo[PLATE_RIGHT].distancePixel));
-	m_logResult->info("FLAG_LEFT {}", GetMM(m_measuredInfo[FLAG_LEFT].distancePixel));
-	m_logResult->info("FLAG_RIGHT{}", GetMM(m_measuredInfo[FLAG_RIGHT].distancePixel));
+	//로그출력 logger
+	//m_logResult->info("PLATE_RIGHT {}", GetMM(m_measuredInfo[PLATE_RIGHT].distancePixel));
+	//mlogResult->info("FLAG_LEFT {}", GetMM(m_measuredInfo[FLAG_LEFT].distancePixel));
+	//m_logResult->info("FLAG_RIGHT {}", GetMM(m_measuredInfo[FLAG_RIGHT].distancePixel));
 }
 double CjGaugeDlg::GetMM(int pixel)
 {
