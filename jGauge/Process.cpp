@@ -82,22 +82,23 @@ int Process::getEdgePoint(CRect rect) {
 	int dir;
 	int nSlope, nDir;
 
-	gEdge::EdgeType edgeoption = gEdge::EdgeType::ABS;
+	//gEdge::EdgeType edgeoption = gEdge::EdgeType::ABS;
+	gEdge::EdgeType edgeoption = gEdge::EdgeType::W2B;
 
 	pData = new int[rect.Width()]; //가로1줄(1열) 짜리 배열
 	pXInt = new int[rect.Height()];
 	
 	for (int j = rect.top; j < rect.bottom; j++) {
-		for (int i = rect.left; i < rect.right; i++)
+		for (int i = rect.right; i > rect.left; i--)
 		{
-			pData[i - rect.left] = m_fm[j*m_nPitch + i];
+			pData[rect.right - i] = m_fm[j*m_nPitch + i];	//오른쪽부터 왼쪽방향, 가로1줄 데이터
 		}
 		edge.LineFindEdge(edgeoption, rect.Width(), pData, &dEdge, &nSlope, &dir);
 
-		pXInt[j - rect.top] = dEdge + rect.left;
+		pXInt[j - rect.top] = rect.right - dEdge;	//pXInt = [j, edge]
 
 		/* edge 표시하기 위한 테스트 코드*/
-		m_fm[int(j*m_nPitch+(dEdge + rect.left))] = 0xff;
+		m_fm[int(j*m_nPitch+(rect.right - dEdge))] = 0xff;
 	}
 
 	double result = findMedianValue(pXInt, rect.Height()); //edge들의 중앙값
