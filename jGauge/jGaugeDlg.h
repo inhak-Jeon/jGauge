@@ -83,7 +83,7 @@ public:
 	void DrawEdge(bool overRect=false);
 	void DrawDiffPixels();
 	void DrawInfomation();
-	double GetMM(int pixel);
+	double GetMM(double pixel);
 	bool LineIsNull(Line line);
 	void testFunc();
 	afx_msg void OnBnClickedBtnRoi2();

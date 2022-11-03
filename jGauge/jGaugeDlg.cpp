@@ -8,7 +8,7 @@
 #include "afxdialogex.h"
 #include "Process.h"
 #include "Label.h"
-#include "gLogger.h"
+#include "gLogger.h"\
 
 #include <math.h>
 
@@ -68,7 +68,6 @@ CjGaugeDlg::CjGaugeDlg(CWnd* pParent /*=NULL*/)
 	m_linePlate.a = 0;
 	m_linePlate.b = 0;
 	m_dsf = DEFAULT_SCALE_FACTOR;
-	//m_process.init(&m_imgDisplay);
 }
 
 void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
@@ -133,7 +132,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
 	this->InitCam();//카메라 초기화
-	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log");
+	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log", true, 1024*1000, 5);
 	m_isStopCam = false;
 
 
@@ -346,11 +345,9 @@ void CjGaugeDlg::DrawInfomation() {
 		}
 	}
 	//로그출력 logger
-	//m_logResult->info("PLATE_RIGHT {}", GetMM(m_measuredInfo[PLATE_RIGHT].distancePixel));
-	//mlogResult->info("FLAG_LEFT {}", GetMM(m_measuredInfo[FLAG_LEFT].distancePixel));
-	//m_logResult->info("FLAG_RIGHT {}", GetMM(m_measuredInfo[FLAG_RIGHT].distancePixel));
+	m_logResult->info("{:0.3f}, {:0.3f}, {:0.3f}", GetMM(m_measuredInfo[PLATE_RIGHT].distancePixel), GetMM(m_measuredInfo[FLAG_LEFT].distancePixel), GetMM(m_measuredInfo[FLAG_RIGHT].distancePixel));
 }
-double CjGaugeDlg::GetMM(int pixel)
+double CjGaugeDlg::GetMM(double pixel)
 {
 	return pixel * m_dsf;
 }
@@ -478,10 +475,14 @@ void CjGaugeDlg::testFunc()
 
 void CjGaugeDlg::OnDestroy()
 {
-	CDialogEx::OnDestroy();
+	if (!m_isStopCam)
+	{
+		ChangeCamState();	//캠 실행중이면 정지
+	}
 	this->CallCfg(FILE_SAVE);
 	delete m_logResult;
 	delete m_cam;
+	CDialogEx::OnDestroy();
 }
 
 
@@ -492,11 +493,7 @@ void CjGaugeDlg::OnTimer(UINT_PTR nIDEvent)
 	string info;
 	CString str;
 	pixel = m_imgDisplay.gGetPixelInfo(ptMouse, ptImg);
-	/*info = "x: " + to_string(ptImg.x) + " y: " + to_string(ptImg.y) + " pixel: " + to_string(pixel);*/
-	info = "x: "+to_string(GetMM(ptImg.x))+"mm (" + to_string(ptImg.x) + ")\n"+
-		"y: "+ to_string(GetMM(ptImg.y))+"mm ("+to_string(ptImg.y) +")\n"+
-		"pixel: " + to_string(pixel);
-	//m_logger.info("{}", info);
+	info = gString().format(" x: {:0.3f}mm ({})\n y: {:0.3f}mm ({})\n pixel: {}", GetMM(ptImg.x), ptImg.x, GetMM(ptImg.y), ptImg.y, pixel);
 	str = info.c_str();
 	GetDlgItem(IDC_STATIC_MOUSE_INFO)->SetWindowTextW(str);
 
