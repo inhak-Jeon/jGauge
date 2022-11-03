@@ -23,6 +23,7 @@
 #define CAM_HEIGHT 2048
 #define CAM_BPP 8
 #define CAM_NAME "Cam6LO"
+#define DEFAULT_SCALE_FACTOR 0.032822757111
 
 #define MAX_OBJECT	4
 enum {
@@ -75,16 +76,14 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	//Process m_process;
 	gCamDahua *m_cam;
 	gImage m_imgDisplay;
-//	CStatic m_infoScale;
 	afx_msg void OnBnClickedBtnRoi1();
 	void DrawRects();
 	void DrawEdge(bool overRect=false);
 	void DrawDiffPixels();
 	void DrawInfomation();
-	gString getStringDistance(int i);
+	double GetMM(int pixel);
 	bool LineIsNull(Line line);
 	void testFunc();
 	afx_msg void OnBnClickedBtnRoi2();
@@ -93,15 +92,14 @@ public:
 	afx_msg void OnBnClickedBtnMeasure();
 	afx_msg void OnBnClickedBtnCapture();
 	void ChangeCamState();
-	// mm단위 거리정보입니다.
-	// pixel단위 거리정보입니다.
 	CButton m_btnCapture;
-	CLabel m_labelInfo;
 	afx_msg void OnDestroy();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnBnClickedBtnImgsave();
 	afx_msg void OnBnClickedBtnImgload();
 	/*mode : 0(FILE_SAVE), 1(FILE_LOAD)*/
 	void CallCfg(int mode);
-	CButton m_checkSimple;
+	CLabel m_labelPlateR;
+	CLabel m_labelFlagL;
+	CLabel m_labelFlagR;
 };

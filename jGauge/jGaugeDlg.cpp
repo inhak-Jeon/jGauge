@@ -67,7 +67,7 @@ CjGaugeDlg::CjGaugeDlg(CWnd* pParent /*=NULL*/)
 	m_linePlate.t = 0;
 	m_linePlate.a = 0;
 	m_linePlate.b = 0;
-	m_dsf = 0.032822757111;
+	m_dsf = DEFAULT_SCALE_FACTOR;
 	//m_process.init(&m_imgDisplay);
 }
 
@@ -75,10 +75,10 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATIC_DISPLAY, m_imgDisplay);
-	//  DDX_Control(pDX, IDC_INFO_SCALE, m_infoScale);
 	DDX_Control(pDX, IDC_BTN_CAPTURE, m_btnCapture);
-	DDX_Control(pDX, IDC_STATIC_INFO, m_labelInfo);
-	DDX_Control(pDX, IDC_CHECK_SIMPLE, m_checkSimple);
+	DDX_Control(pDX, IDC_STATIC_INFO_PLATE_R, m_labelPlateR);
+	DDX_Control(pDX, IDC_STATIC_INFO_FLAG_R, m_labelFlagR);
+	DDX_Control(pDX, IDC_STATIC_INFO_FLAG_L, m_labelFlagL);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -135,6 +135,12 @@ BOOL CjGaugeDlg::OnInitDialog()
 	this->InitCam();//카메라 초기화
 	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log");
 	m_isStopCam = false;
+
+
+	//design 초기화
+	m_labelPlateR.SetFontSize(20).SetTextColor(COLOR_RED);
+	m_labelFlagL.SetFontSize(20).SetTextColor(COLOR_BLUE);
+	m_labelFlagR.SetFontSize(20).SetTextColor(COLOR_GREEN);
 
 	SetTimer(0, 100, NULL);
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -318,30 +324,35 @@ void CjGaugeDlg::DrawDiffPixels() {
 }
 
 void CjGaugeDlg::DrawInfomation() {
-	string strDistance = "";
 	for (int i = PLATE_RIGHT; i <= FLAG_RIGHT; i++)
 	{
-		strDistance.append(getStringDistance(i));
-		strDistance.append(" (mm)\n\n");
-	}
+		string strDistance = "";
+		double dResult = GetMM(m_measuredInfo[i].distancePixel);
+		strDistance.append(gString().format("{:0.3f}(mm)", dResult));
+		//design 변경
+		switch (i)
+		{
+			case PLATE_RIGHT:
+				m_labelPlateR.SetText(strDistance);
+				break;
 
-	//design 변경
-	m_labelInfo.SetText(strDistance);
-	m_labelInfo.SetFontSize(20);
+			case FLAG_LEFT:
+				m_labelFlagL.SetText(strDistance);
+				break;
+
+			case FLAG_RIGHT:
+				m_labelFlagR.SetText(strDistance);
+				break;
+		}
+	}
 	//로그출력
-	m_logResult->info("{}", getStringDistance(FLAG_LEFT));
+	m_logResult->info("PLATE_RIGHT {}", GetMM(m_measuredInfo[PLATE_RIGHT].distancePixel));
+	m_logResult->info("FLAG_LEFT {}", GetMM(m_measuredInfo[FLAG_LEFT].distancePixel));
+	m_logResult->info("FLAG_RIGHT{}", GetMM(m_measuredInfo[FLAG_RIGHT].distancePixel));
 }
-
-gString CjGaugeDlg::getStringDistance(int i) {
-	double dResult = m_measuredInfo[i].distancePixel*m_dsf;
-	if (m_checkSimple.GetCheck())
-	{
-		return gString().format("{:0.2f}", dResult);
-	}
-	else
-	{
-		return gString(dResult);
-	}
+double CjGaugeDlg::GetMM(int pixel)
+{
+	return pixel * m_dsf;
 }
 
 bool CjGaugeDlg::LineIsNull(Line line)
@@ -398,8 +409,6 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	//testFunc();
 	//return;
 
-	//for(int k=0; k)
-
 	if (m_rectRoi[1].Width() == 0)	return;
 	Process process(&m_imgDisplay);
 	//Plate-left Roi
@@ -426,9 +435,10 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	m_measuredInfo[FLAG_RIGHT].distancePixel = process.measureDistance(
 		m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y, m_lineBase);
 
-	DrawInfomation();
+	m_imgDisplay.gDrawClear();
 	DrawEdge();
 	DrawRects();
+	DrawInfomation();
 	m_imgDisplay.UpdateDisplay();
 
 }
@@ -482,7 +492,10 @@ void CjGaugeDlg::OnTimer(UINT_PTR nIDEvent)
 	string info;
 	CString str;
 	pixel = m_imgDisplay.gGetPixelInfo(ptMouse, ptImg);
-	info = "x: " + to_string(ptImg.x) + " y: " + to_string(ptImg.y) + " pixel: " + to_string(pixel);
+	/*info = "x: " + to_string(ptImg.x) + " y: " + to_string(ptImg.y) + " pixel: " + to_string(pixel);*/
+	info = "x: "+to_string(GetMM(ptImg.x))+"mm (" + to_string(ptImg.x) + ")\n"+
+		"y: "+ to_string(GetMM(ptImg.y))+"mm ("+to_string(ptImg.y) +")\n"+
+		"pixel: " + to_string(pixel);
 	//m_logger.info("{}", info);
 	str = info.c_str();
 	GetDlgItem(IDC_STATIC_MOUSE_INFO)->SetWindowTextW(str);
@@ -535,6 +548,10 @@ void CjGaugeDlg::CallCfg(int mode)
 
 	//ScaleFactor
 	cfg.SerGet(mode, m_dsf, _T("ScaleFactor"));
+	if (m_dsf == 0)
+	{
+		m_dsf = DEFAULT_SCALE_FACTOR;
+	}
 
 	//rects 정보
 	string strRects[4] = { "PLATE_LEFT", "PLATE_RIGHT", "FLAG_LEFT", "FLAG_RIGHT" };
