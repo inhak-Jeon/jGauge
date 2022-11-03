@@ -31,6 +31,10 @@ enum {
 	FLAG_LEFT,
 	FLAG_RIGHT
 };
+enum {
+	FILE_SAVE,
+	FILE_LOAD
+};
 // CjGaugeDlg 대화 상자
 
 class CjGaugeDlg : public CDialogEx
@@ -41,6 +45,7 @@ private:
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
 	double m_dsf ;	//scale factor : mm/pixel	
+	bool m_isStopCam;
 
 	gLogger *m_logResult;
 
@@ -87,6 +92,7 @@ public:
 	afx_msg void OnBnClickedBtnRoi4();
 	afx_msg void OnBnClickedBtnMeasure();
 	afx_msg void OnBnClickedBtnCapture();
+	void ChangeCamState();
 	// mm단위 거리정보입니다.
 	// pixel단위 거리정보입니다.
 	CButton m_btnCapture;
@@ -95,7 +101,7 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnBnClickedBtnImgsave();
 	afx_msg void OnBnClickedBtnImgload();
-	void saveCfg();
-	void loadCfg();
+	/*mode : 0(FILE_SAVE), 1(FILE_LOAD)*/
+	void CallCfg(int mode);
 	CButton m_checkSimple;
 };

@@ -129,11 +129,12 @@ BOOL CjGaugeDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
-	loadCfg();	//Cfg파일에서 로드
+	this->CallCfg(FILE_LOAD);	//Cfg파일에서 로드
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	this->MoveWindow(0, 0, 1920, 1080);//다이얼로그 크기조절
 	this->InitCam();//카메라 초기화
 	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log");
+	m_isStopCam = false;
 
 	SetTimer(0, 100, NULL);
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -351,20 +352,24 @@ bool CjGaugeDlg::LineIsNull(Line line)
 		return false;
 }
 
-bool isStopCam = false;
+
 void CjGaugeDlg::OnBnClickedBtnCapture()
 {
-	if (isStopCam)
+	ChangeCamState();
+}
+
+void CjGaugeDlg::ChangeCamState()
+{
+	if (m_isStopCam)
 	{
 		m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
-		
 		m_btnCapture.SetWindowTextW(CString("Grab"));
 	}
 	else {
 		m_cam->stopGrabbing();
 		m_btnCapture.SetWindowTextW(CString("Live"));
 	}
-	isStopCam = !isStopCam;
+	m_isStopCam = !m_isStopCam;
 }
 
 
@@ -464,7 +469,7 @@ void CjGaugeDlg::testFunc()
 void CjGaugeDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
-	this->saveCfg();
+	this->CallCfg(FILE_SAVE);
 	delete m_logResult;
 	delete m_cam;
 }
@@ -489,16 +494,39 @@ void CjGaugeDlg::OnTimer(UINT_PTR nIDEvent)
 
 void CjGaugeDlg::OnBnClickedBtnImgsave()
 {
-	m_imgDisplay.gSave("c:/glim/jGauge.bmp", true);
+	CString strDPath = _T("c:/glim/jGauge.bmp");
+	static TCHAR BASED_CODE szFilter[] = _T("이미지 파일(*.BMP, *.GIF, *.JPG) | *.BMP;*.GIF;*.JPG;*.bmp;*.jpg;*.gif |모든파일(*.*)|*.*||");
+
+	CFileDialog dlg(FALSE, _T("*.bmp"), _T("jGauge"), OFN_HIDEREADONLY, szFilter);
+	dlg.m_ofn.lpstrInitialDir = strDPath;
+	if (IDOK == dlg.DoModal())
+	{
+		CString pathName = dlg.GetPathName();
+		MessageBox(pathName);
+		m_imgDisplay.gSave(pathName, true);
+	}
 }
 
 
 void CjGaugeDlg::OnBnClickedBtnImgload()
 {
-	m_imgDisplay.gLoad("c:/glim/jGauge.bmp");
+	CString strDPath = _T("c:/glim/jGauge.bmp");
+	static TCHAR BASED_CODE szFilter[] = _T("이미지 파일(*.BMP, *.GIF, *.JPG) | *.BMP;*.GIF;*.JPG;*.bmp;*.jpg;*.gif |모든파일(*.*)|*.*||");
+
+	CFileDialog dlg(TRUE, _T("*.bmp"), _T("jGauge"), OFN_HIDEREADONLY, szFilter);
+	dlg.m_ofn.lpstrInitialDir = strDPath;
+	if (IDOK == dlg.DoModal())
+	{
+		if (!m_isStopCam) 
+			ChangeCamState();
+
+		CString pathName = dlg.GetPathName();
+		MessageBox(pathName);
+		m_imgDisplay.gLoad(pathName);
+	}
 }
 
-void CjGaugeDlg::saveCfg()
+void CjGaugeDlg::CallCfg(int mode)
 {
 	CString path = _T("c:/glim/jGauge.ini");
 	CString key = _T("c:/glim/jGauge.ini");
@@ -506,34 +534,13 @@ void CjGaugeDlg::saveCfg()
 	gCfg cfg(path, key);
 
 	//ScaleFactor
-	cfg.SerGet(0, m_dsf, _T("ScaleFactor"));
+	cfg.SerGet(mode, m_dsf, _T("ScaleFactor"));
 
 	//rects 정보
 	string strRects[4] = { "PLATE_LEFT", "PLATE_RIGHT", "FLAG_LEFT", "FLAG_RIGHT" };
 	//rects 정보
 	for (int i = 0; i < MAX_OBJECT; i++)
 	{
-		cfg.SerGet(0, m_rectRoi[i], gString(strRects[i]).toCString());
+		cfg.SerGet(mode, m_rectRoi[i], gString(strRects[i]).toCString());
 	}
 }
-
-void CjGaugeDlg::loadCfg()
-{
-	CString path = _T("c:/glim/jGauge.ini");
-	CString key = _T("c:/glim/jGauge.ini");
-
-	gCfg cfg(path, key);
-
-	//ScaleFactor
-	cfg.SerGet(1, m_dsf, _T("ScaleFactor"));
-
-	string strRects[4] = { "PLATE_LEFT", "PLATE_RIGHT", "FLAG_LEFT", "FLAG_RIGHT" };
-	//rects 정보
-	for (int i = 0; i < MAX_OBJECT; i++)
-	{
-		cfg.SerGet(1, m_rectRoi[i], gString(strRects[i]).toCString());
-	}
-}
-
-
-

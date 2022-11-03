@@ -98,11 +98,12 @@ int Process::getEdgePoint(CRect rect) {
 		pXInt[j - rect.top] = rect.right - dEdge;	//pXInt = [j, edge]
 
 		/* edge 표시하기 위한 테스트 코드*/
-		m_fm[int(j*m_nPitch+(rect.right - dEdge))] = 0xff;
+		//m_fm[int(j*m_nPitch+(rect.right - dEdge))] = 0xff;
 	}
 
 	double result = findMedianValue(pXInt, rect.Height()); //edge들의 중앙값
-	m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
+	/* edges의 중앙값을 표시하기 위한 테스트 코드*/
+	//m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
 
 	delete pData, pXInt;
 	return result;
