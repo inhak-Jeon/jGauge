@@ -1,5 +1,5 @@
-
-// jGaugeDlg.cpp : ±¸Çö ÆÄÀÏ
+ï»¿
+// jGaugeDlg.cpp : êµ¬í˜„ íŒŒì¼
 //
 
 #include "stdafx.h"
@@ -8,7 +8,8 @@
 #include "afxdialogex.h"
 #include "Process.h"
 #include "Label.h"
-#include "gLogger.h"\
+#include "gLogger.h"
+#include "gEdge.h"
 
 #include <math.h>
 
@@ -17,26 +18,27 @@
 #endif
 
 
-// ÀÀ¿ë ÇÁ·Î±×·¥ Á¤º¸¿¡ »ç¿ëµÇ´Â CAboutDlg ´ëÈ­ »óÀÚÀÔ´Ï´Ù.
+// ì‘ìš© í”„ë¡œê·¸ë¨ ì •ë³´ì— ì‚¬ìš©ë˜ëŠ” CAboutDlg ëŒ€í™” ìƒìì…ë‹ˆë‹¤.
 
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-// ´ëÈ­ »óÀÚ µ¥ÀÌÅÍÀÔ´Ï´Ù.
+// ëŒ€í™” ìƒì ë°ì´í„°ì…ë‹ˆë‹¤.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Áö¿øÀÔ´Ï´Ù.
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV ì§€ì›ì…ë‹ˆë‹¤.
 
-// ±¸ÇöÀÔ´Ï´Ù.
+// êµ¬í˜„ì…ë‹ˆë‹¤.
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
 //	afx_msg void OnTimer(UINT_PTR nIDEvent);
+//	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
@@ -50,10 +52,11 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 	ON_WM_TIMER()
+//	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
-// CjGaugeDlg ´ëÈ­ »óÀÚ
+// CjGaugeDlg ëŒ€í™” ìƒì
 
 
 
@@ -78,6 +81,9 @@ void CjGaugeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_INFO_PLATE_R, m_labelPlateR);
 	DDX_Control(pDX, IDC_STATIC_INFO_FLAG_R, m_labelFlagR);
 	DDX_Control(pDX, IDC_STATIC_INFO_FLAG_L, m_labelFlagL);
+	//  DDX_Control(pDX, IDC_BTN_MEASURE, m_btn_measure);
+	//  DDX_Control(pDX, IDC_BTN_MEASURE, m_btnMeasure);
+	DDX_Control(pDX, IDC_CHK_DRAWPOINT, mChkDrawPoint);
 }
 
 BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
@@ -94,18 +100,18 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BTN_IMGSAVE, &CjGaugeDlg::OnBnClickedBtnImgsave)
 	ON_BN_CLICKED(IDC_BTN_IMGLOAD, &CjGaugeDlg::OnBnClickedBtnImgload)
+//	ON_WM_ERASEBKGND()
+ON_WM_ERASEBKGND()
+ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
-// CjGaugeDlg ¸Ş½ÃÁö Ã³¸®±â
+// CjGaugeDlg ë©”ì‹œì§€ ì²˜ë¦¬ê¸°
 BOOL CjGaugeDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
-	// ½Ã½ºÅÛ ¸Ş´º¿¡ "Á¤º¸..." ¸Ş´º Ç×¸ñÀ» Ãß°¡ÇÕ´Ï´Ù.
-
-
-	// IDM_ABOUTBOX´Â ½Ã½ºÅÛ ¸í·É ¹üÀ§¿¡ ÀÖ¾î¾ß ÇÕ´Ï´Ù.
+	// ì‹œìŠ¤í…œ ë©”ë‰´ì— "ì •ë³´..." ë©”ë‰´ í•­ëª©ì„ ì¶”ê°€í•©ë‹ˆë‹¤.
+	// IDM_ABOUTBOXëŠ” ì‹œìŠ¤í…œ ëª…ë ¹ ë²”ìœ„ì— ìˆì–´ì•¼ í•©ë‹ˆë‹¤.
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -123,49 +129,52 @@ BOOL CjGaugeDlg::OnInitDialog()
 		}
 	}
 
-	// ÀÌ ´ëÈ­ »óÀÚÀÇ ¾ÆÀÌÄÜÀ» ¼³Á¤ÇÕ´Ï´Ù.  ÀÀ¿ë ÇÁ·Î±×·¥ÀÇ ÁÖ Ã¢ÀÌ ´ëÈ­ »óÀÚ°¡ ¾Æ´Ò °æ¿ì¿¡´Â
-	//  ÇÁ·¹ÀÓ¿öÅ©°¡ ÀÌ ÀÛ¾÷À» ÀÚµ¿À¸·Î ¼öÇàÇÕ´Ï´Ù.
-	SetIcon(m_hIcon, TRUE);			// Å« ¾ÆÀÌÄÜÀ» ¼³Á¤ÇÕ´Ï´Ù.
-	SetIcon(m_hIcon, FALSE);		// ÀÛÀº ¾ÆÀÌÄÜÀ» ¼³Á¤ÇÕ´Ï´Ù.
-
-	this->CallCfg(FILE_LOAD);	//CfgÆÄÀÏ¿¡¼­ ·Îµå
-	// TODO: ¿©±â¿¡ Ãß°¡ ÃÊ±âÈ­ ÀÛ¾÷À» Ãß°¡ÇÕ´Ï´Ù.
-	this->MoveWindow(0, 0, 1920, 1080);//´ÙÀÌ¾ó·Î±× Å©±âÁ¶Àı
-	this->InitCam();//Ä«¸Ş¶ó ÃÊ±âÈ­
+	// ì´ ëŒ€í™” ìƒìì˜ ì•„ì´ì½˜ì„ ì„¤ì •í•©ë‹ˆë‹¤.  ì‘ìš© í”„ë¡œê·¸ë¨ì˜ ì£¼ ì°½ì´ ëŒ€í™” ìƒìê°€ ì•„ë‹ ê²½ìš°ì—ëŠ”
+	//  í”„ë ˆì„ì›Œí¬ê°€ ì´ ì‘ì—…ì„ ìë™ìœ¼ë¡œ ìˆ˜í–‰í•©ë‹ˆë‹¤.
+	SetIcon(m_hIcon, TRUE);			// í° ì•„ì´ì½˜ì„ ì„¤ì •í•©ë‹ˆë‹¤.
+	SetIcon(m_hIcon, FALSE);		// ì‘ì€ ì•„ì´ì½˜ì„ ì„¤ì •í•©ë‹ˆë‹¤.
+	
+	this->CallCfg(FILE_LOAD);	//CfgíŒŒì¼ì—ì„œ ë¡œë“œ
+	// TODO: ì—¬ê¸°ì— ì¶”ê°€ ì´ˆê¸°í™” ì‘ì—…ì„ ì¶”ê°€í•©ë‹ˆë‹¤.
+	this->MoveWindow(0, 0, 1920, 1080);//ë‹¤ì´ì–¼ë¡œê·¸ í¬ê¸°ì¡°ì ˆ
+	this->InitCam();//ì¹´ë©”ë¼ ì´ˆê¸°í™”
 	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log", true, 1024*1000, 5);
 	m_isStopCam = false;
 
-
-	//design ÃÊ±âÈ­
-	m_labelPlateR.SetFontSize(20).SetTextColor(COLOR_RED);
-	m_labelFlagL.SetFontSize(20).SetTextColor(COLOR_BLUE);
-	m_labelFlagR.SetFontSize(20).SetTextColor(COLOR_GREEN);
+	//design ì´ˆê¸°í™”
+	m_labelPlateR.SetFontSize(20).SetTextColor(COLOR_RED).SetFontBold(true);
+	m_labelFlagL.SetFontSize(20).SetTextColor(COLOR_BLUE).SetFontBold(true);
+	m_labelFlagR.SetFontSize(20).SetTextColor(COLOR_GREEN).SetFontBold(true);
+	//font ë³€ê²½
+	CFont btnFont;
+	btnFont.CreateFont(15, 7, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, _T("Times New Roman"));
+	m_btnCapture.SetFont(&btnFont);
 
 	SetTimer(0, 100, NULL);
-	return TRUE;  // Æ÷Ä¿½º¸¦ ÄÁÆ®·Ñ¿¡ ¼³Á¤ÇÏÁö ¾ÊÀ¸¸é TRUE¸¦ ¹İÈ¯ÇÕ´Ï´Ù.
+	return TRUE;  // í¬ì»¤ìŠ¤ë¥¼ ì»¨íŠ¸ë¡¤ì— ì„¤ì •í•˜ì§€ ì•Šìœ¼ë©´ TRUEë¥¼ ë°˜í™˜í•©ë‹ˆë‹¤.
 }
 
-//Ä«¸Ş¶ó¸¦ ÃÊ±âÈ­ÇÕ´Ï´Ù.
+//ì¹´ë©”ë¼ë¥¼ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
 void CjGaugeDlg::InitCam() {
-	//Ãâ·Â¿ë µğ½ºÇÃ·¹ÀÌ ¼³Á¤
+	//ì¶œë ¥ìš© ë””ìŠ¤í”Œë ˆì´ ì„¤ì •
 	m_imgDisplay.gCreate(CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
-	m_imgDisplay.gSetUseRoi(TRUE);	//ROI¸¦ »ç¿ëÇÕ´Ï´Ù.
+	m_imgDisplay.gSetUseRoi(TRUE);	//ROIë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
 
-	// TODO: Ä«¸Ş¶ó °ü·Ã Å×½ºÆ®
+	// TODO: ì¹´ë©”ë¼ ê´€ë ¨ í…ŒìŠ¤íŠ¸
 	m_cam = new gCamDahua(CAM_NAME);
-	m_cam->init(G_CAM_NONE);	// ÇØ´çÄ· ÃÊ±âÈ­
+	m_cam->init(G_CAM_NONE);	// í•´ë‹¹ìº  ì´ˆê¸°í™”
 
 	//gLogger logger("ihj", "C:/Users/USER/Documents/Visual Studio 2015/Projects/ihjExam/Log/log.log", true, 1024 * 30000, 5);
-	//Ä· ±×·¦
+	//ìº  ê·¸ë©
 	bool bErrChk = m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
 	//if (bErrChk == FALSE)
 	//{
-	//	logger.info("¹®Á¦ÀÖÀ½");
+	//	logger.info("ë¬¸ì œìˆìŒ");
 	//}
 	//else
-	//	logger.info("¹®Á¦¾øÀ½");
+	//	logger.info("ë¬¸ì œì—†ìŒ");
 
-	//unsigned char** pImgData = m_cam->getPointer();	//grabµÈ ÇÁ·¹ÀÓÀÇ ÀÌ¹ÌÁö ÁÖ¼Ò¸¦ °¡Á®¿É´Ï´Ù. ½ÇÆĞ½Ã nullptr
+	//unsigned char** pImgData = m_cam->getPointer();	//grabëœ í”„ë ˆì„ì˜ ì´ë¯¸ì§€ ì£¼ì†Œë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤. ì‹¤íŒ¨ì‹œ nullptr
 
 	//if (pImgData == nullptr)
 	//{
@@ -175,12 +184,12 @@ void CjGaugeDlg::InitCam() {
 	//	logger.info("camera started");
 
 	//logger.info("camera: {}, {}, {}", CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
-	//logger.end("Ä«¸Ş¶ó ¿¬°á±îÁö °É¸®´Â ½Ã°£ : ");
+	//logger.end("ì¹´ë©”ë¼ ì—°ê²°ê¹Œì§€ ê±¸ë¦¬ëŠ” ì‹œê°„ : ");
 	
 }
 void CjGaugeDlg::_callback(unsigned char *imgPtr)
 {
-	//Ä«¸Ş¶ó¸¦ ÃÊ±âÈ­ÇÕ´Ï´Ù.
+	//ì¹´ë©”ë¼ë¥¼ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
 	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
 
 	OnBnClickedBtnMeasure();
@@ -200,19 +209,19 @@ void CjGaugeDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 }
 
-// ´ëÈ­ »óÀÚ¿¡ ÃÖ¼ÒÈ­ ´ÜÃß¸¦ Ãß°¡ÇÒ °æ¿ì ¾ÆÀÌÄÜÀ» ±×¸®·Á¸é
-//  ¾Æ·¡ ÄÚµå°¡ ÇÊ¿äÇÕ´Ï´Ù.  ¹®¼­/ºä ¸ğµ¨À» »ç¿ëÇÏ´Â MFC ÀÀ¿ë ÇÁ·Î±×·¥ÀÇ °æ¿ì¿¡´Â
-//  ÇÁ·¹ÀÓ¿öÅ©¿¡¼­ ÀÌ ÀÛ¾÷À» ÀÚµ¿À¸·Î ¼öÇàÇÕ´Ï´Ù.
+// ëŒ€í™” ìƒìì— ìµœì†Œí™” ë‹¨ì¶”ë¥¼ ì¶”ê°€í•  ê²½ìš° ì•„ì´ì½˜ì„ ê·¸ë¦¬ë ¤ë©´
+//  ì•„ë˜ ì½”ë“œê°€ í•„ìš”í•©ë‹ˆë‹¤.  ë¬¸ì„œ/ë·° ëª¨ë¸ì„ ì‚¬ìš©í•˜ëŠ” MFC ì‘ìš© í”„ë¡œê·¸ë¨ì˜ ê²½ìš°ì—ëŠ”
+//  í”„ë ˆì„ì›Œí¬ì—ì„œ ì´ ì‘ì—…ì„ ìë™ìœ¼ë¡œ ìˆ˜í–‰í•©ë‹ˆë‹¤.
 
 void CjGaugeDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // ±×¸®±â¸¦ À§ÇÑ µğ¹ÙÀÌ½º ÄÁÅØ½ºÆ®ÀÔ´Ï´Ù.
+		CPaintDC dc(this); // ê·¸ë¦¬ê¸°ë¥¼ ìœ„í•œ ë””ë°”ì´ìŠ¤ ì»¨í…ìŠ¤íŠ¸ì…ë‹ˆë‹¤.
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// Å¬¶óÀÌ¾ğÆ® »ç°¢Çü¿¡¼­ ¾ÆÀÌÄÜÀ» °¡¿îµ¥¿¡ ¸ÂÃä´Ï´Ù.
+		// í´ë¼ì´ì–¸íŠ¸ ì‚¬ê°í˜•ì—ì„œ ì•„ì´ì½˜ì„ ê°€ìš´ë°ì— ë§ì¶¥ë‹ˆë‹¤.
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -220,7 +229,7 @@ void CjGaugeDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// ¾ÆÀÌÄÜÀ» ±×¸³´Ï´Ù.
+		// ì•„ì´ì½˜ì„ ê·¸ë¦½ë‹ˆë‹¤.
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -229,8 +238,8 @@ void CjGaugeDlg::OnPaint()
 	}
 }
 
-// »ç¿ëÀÚ°¡ ÃÖ¼ÒÈ­µÈ Ã¢À» ²ô´Â µ¿¾È¿¡ Ä¿¼­°¡ Ç¥½ÃµÇµµ·Ï ½Ã½ºÅÛ¿¡¼­
-//  ÀÌ ÇÔ¼ö¸¦ È£ÃâÇÕ´Ï´Ù.
+// ì‚¬ìš©ìê°€ ìµœì†Œí™”ëœ ì°½ì„ ë„ëŠ” ë™ì•ˆì— ì»¤ì„œê°€ í‘œì‹œë˜ë„ë¡ ì‹œìŠ¤í…œì—ì„œ
+//  ì´ í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•©ë‹ˆë‹¤.
 HCURSOR CjGaugeDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
@@ -256,7 +265,7 @@ void CjGaugeDlg::DrawEdge(bool overRect)
 
 	if (overRect)
 	{
-		//BaseLine ¿§Áö ±×¸®±â
+		//BaseLine ì—£ì§€ ê·¸ë¦¬ê¸°
 		if (!LineIsNull(m_lineBase))
 		{
 			t = m_lineBase.t;
@@ -268,7 +277,7 @@ void CjGaugeDlg::DrawEdge(bool overRect)
 			p2.x = (t*p2.y - b) / a;
 			m_imgDisplay.gDrawLine(p1, p2);
 		}
-		//PlateLine ¿§Áö ±×¸®±â
+		//PlateLine ì—£ì§€ ê·¸ë¦¬ê¸°
 		if (!LineIsNull(m_linePlate))
 		{
 			t = m_linePlate.t;
@@ -281,7 +290,7 @@ void CjGaugeDlg::DrawEdge(bool overRect)
 			m_imgDisplay.gDrawLine(p1, p2);
 		}
 	}else {
-		//BaseLine ¿§Áö ±×¸®±â
+		//BaseLine ì—£ì§€ ê·¸ë¦¬ê¸°
 		if (!LineIsNull(m_lineBase))
 		{
 			t = m_lineBase.t;
@@ -293,7 +302,7 @@ void CjGaugeDlg::DrawEdge(bool overRect)
 			p2.x = (t*p2.y - b) / a;
 			m_imgDisplay.gDrawLine(p1, p2);
 		}
-		//PlateLine ¿§Áö ±×¸®±â
+		//PlateLine ì—£ì§€ ê·¸ë¦¬ê¸°
 		if (!LineIsNull(m_linePlate))
 		{
 			t = m_linePlate.t;
@@ -327,8 +336,8 @@ void CjGaugeDlg::DrawInfomation() {
 	{
 		string strDistance = "";
 		double dResult = GetMM(m_measuredInfo[i].distancePixel);
-		strDistance.append(gString().format("{:0.3f}(mm)", dResult));
-		//design º¯°æ
+		strDistance.append(gString().format("{:0.3f}(mm)           ", dResult));
+		//design ë³€ê²½
 		switch (i)
 		{
 			case PLATE_RIGHT:
@@ -344,7 +353,7 @@ void CjGaugeDlg::DrawInfomation() {
 				break;
 		}
 	}
-	//·Î±×Ãâ·Â logger
+	//ë¡œê·¸ì¶œë ¥ logger
 	m_logResult->info("{:0.3f}, {:0.3f}, {:0.3f}", GetMM(m_measuredInfo[PLATE_RIGHT].distancePixel), GetMM(m_measuredInfo[FLAG_LEFT].distancePixel), GetMM(m_measuredInfo[FLAG_RIGHT].distancePixel));
 }
 double CjGaugeDlg::GetMM(double pixel)
@@ -371,11 +380,11 @@ void CjGaugeDlg::ChangeCamState()
 	if (m_isStopCam)
 	{
 		m_cam->startGrabbing([this](unsigned char *imgPtr) {_callback(imgPtr); });
-		m_btnCapture.SetWindowTextW(CString("Grab"));
+		m_btnCapture.SetWindowTextW(CString("â– "));
 	}
 	else {
 		m_cam->stopGrabbing();
-		m_btnCapture.SetWindowTextW(CString("Live"));
+		m_btnCapture.SetWindowTextW(CString("â–¶"));
 	}
 	m_isStopCam = !m_isStopCam;
 }
@@ -413,7 +422,7 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	//Plate-right Roi
 	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_linePlate.t, &m_linePlate.a, &m_linePlate.b);
 
-	//PLATE_Right ±îÁöÀÇ °Å¸® ±¸ÇÏ±â
+	//PLATE_Right ê¹Œì§€ì˜ ê±°ë¦¬ êµ¬í•˜ê¸°
 	m_measuredInfo[PLATE_RIGHT].y = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
 	m_measuredInfo[PLATE_RIGHT].x = (m_linePlate.t * m_measuredInfo[PLATE_RIGHT].y - m_linePlate.b) / m_linePlate.a;
 	m_measuredInfo[PLATE_RIGHT].distancePixel = process.measureDistance(
@@ -422,13 +431,13 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 
 	//flag-left point
 	m_measuredInfo[FLAG_LEFT].y = m_rectRoi[FLAG_LEFT].CenterPoint().y;
-	m_measuredInfo[FLAG_LEFT].x = process.getEdgePoint(m_rectRoi[FLAG_LEFT]);	// x = (ty-b)/a
+	m_measuredInfo[FLAG_LEFT].x = process.getEdgePoint(m_rectRoi[FLAG_LEFT], mChkDrawPoint.GetCheck());	// x = (ty-b)/a
 	m_measuredInfo[FLAG_LEFT].distancePixel = process.measureDistance(
 		m_measuredInfo[FLAG_LEFT].x, m_measuredInfo[FLAG_LEFT].y, m_lineBase);
 
-	//FLAG_Left ±îÁöÀÇ °Å¸® ±¸ÇÏ±â
+	//FLAG_Left ê¹Œì§€ì˜ ê±°ë¦¬ êµ¬í•˜ê¸°
 	m_measuredInfo[FLAG_RIGHT].y = m_rectRoi[FLAG_RIGHT].CenterPoint().y;
-	m_measuredInfo[FLAG_RIGHT].x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT]);	// x = (ty-b)/a
+	m_measuredInfo[FLAG_RIGHT].x = process.getEdgePoint(m_rectRoi[FLAG_RIGHT], mChkDrawPoint.GetCheck());	// x = (ty-b)/a
 	m_measuredInfo[FLAG_RIGHT].distancePixel = process.measureDistance(
 		m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y, m_lineBase);
 
@@ -440,7 +449,6 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 
 }
 
-#include "gEdge.h"
 void CjGaugeDlg::testFunc()
 {
 	int nWidth = m_imgDisplay.gGetWidth();
@@ -475,14 +483,14 @@ void CjGaugeDlg::testFunc()
 
 void CjGaugeDlg::OnDestroy()
 {
-	if (!m_isStopCam)
+	CDialogEx::OnDestroy();
+		if (!m_isStopCam)
 	{
-		ChangeCamState();	//Ä· ½ÇÇàÁßÀÌ¸é Á¤Áö
+		ChangeCamState();	//ìº  ì‹¤í–‰ì¤‘ì´ë©´ ì •ì§€
 	}
 	this->CallCfg(FILE_SAVE);
 	delete m_logResult;
 	delete m_cam;
-	CDialogEx::OnDestroy();
 }
 
 
@@ -493,7 +501,7 @@ void CjGaugeDlg::OnTimer(UINT_PTR nIDEvent)
 	string info;
 	CString str;
 	pixel = m_imgDisplay.gGetPixelInfo(ptMouse, ptImg);
-	info = gString().format(" x: {:0.3f}mm ({})\n y: {:0.3f}mm ({})\n pixel: {}", GetMM(ptImg.x), ptImg.x, GetMM(ptImg.y), ptImg.y, pixel);
+	info = gString().format(" x: {:0.3f}mm ({})      \n y: {:0.3f}mm ({})      \n pixel: {}      ", GetMM(ptImg.x), ptImg.x, GetMM(ptImg.y), ptImg.y, pixel);
 	str = info.c_str();
 	GetDlgItem(IDC_STATIC_MOUSE_INFO)->SetWindowTextW(str);
 
@@ -505,7 +513,7 @@ void CjGaugeDlg::OnTimer(UINT_PTR nIDEvent)
 void CjGaugeDlg::OnBnClickedBtnImgsave()
 {
 	CString strDPath = _T("c:/glim/jGauge.bmp");
-	static TCHAR BASED_CODE szFilter[] = _T("ÀÌ¹ÌÁö ÆÄÀÏ(*.BMP, *.GIF, *.JPG) | *.BMP;*.GIF;*.JPG;*.bmp;*.jpg;*.gif |¸ğµçÆÄÀÏ(*.*)|*.*||");
+	static TCHAR BASED_CODE szFilter[] = _T("ì´ë¯¸ì§€ íŒŒì¼(*.BMP, *.GIF, *.JPG) | *.BMP;*.GIF;*.JPG;*.bmp;*.jpg;*.gif |ëª¨ë“ íŒŒì¼(*.*)|*.*||");
 
 	CFileDialog dlg(FALSE, _T("*.bmp"), _T("jGauge"), OFN_HIDEREADONLY, szFilter);
 	dlg.m_ofn.lpstrInitialDir = strDPath;
@@ -521,7 +529,7 @@ void CjGaugeDlg::OnBnClickedBtnImgsave()
 void CjGaugeDlg::OnBnClickedBtnImgload()
 {
 	CString strDPath = _T("c:/glim/jGauge.bmp");
-	static TCHAR BASED_CODE szFilter[] = _T("ÀÌ¹ÌÁö ÆÄÀÏ(*.BMP, *.GIF, *.JPG) | *.BMP;*.GIF;*.JPG;*.bmp;*.jpg;*.gif |¸ğµçÆÄÀÏ(*.*)|*.*||");
+	static TCHAR BASED_CODE szFilter[] = _T("ì´ë¯¸ì§€ íŒŒì¼(*.BMP, *.GIF, *.JPG) | *.BMP;*.GIF;*.JPG;*.bmp;*.jpg;*.gif |ëª¨ë“ íŒŒì¼(*.*)|*.*||");
 
 	CFileDialog dlg(TRUE, _T("*.bmp"), _T("jGauge"), OFN_HIDEREADONLY, szFilter);
 	dlg.m_ofn.lpstrInitialDir = strDPath;
@@ -550,11 +558,49 @@ void CjGaugeDlg::CallCfg(int mode)
 		m_dsf = DEFAULT_SCALE_FACTOR;
 	}
 
-	//rects Á¤º¸
+	//rects ì •ë³´
 	string strRects[4] = { "PLATE_LEFT", "PLATE_RIGHT", "FLAG_LEFT", "FLAG_RIGHT" };
-	//rects Á¤º¸
+	//rects ì •ë³´
 	for (int i = 0; i < MAX_OBJECT; i++)
 	{
 		cfg.SerGet(mode, m_rectRoi[i], gString(strRects[i]).toCString());
 	}
 }
+
+BOOL CjGaugeDlg::OnEraseBkgnd(CDC* pDC)
+{
+	CRect r;
+	GetClientRect(r);
+	// ë°°ê²½ìƒ‰ì„ íŒŒë€ìƒ‰ìœ¼ë¡œ ë³€ê²½í•œë‹¤. í°ìƒ‰ì€ RGB(255,255,255)
+	pDC->FillSolidRect(r, RGB_BACK);
+
+	return TRUE;
+	//return CDialogEx::OnEraseBkgnd(pDC);
+}
+
+HBRUSH CjGaugeDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+	UINT nID = pWnd->GetDlgCtrlID();
+
+
+	if (nCtlColor == CTLCOLOR_STATIC || nID == IDC_STATIC_INFO_PLATE_R || nID == IDC_STATIC_INFO_FLAG_L || nID == IDC_STATIC_INFO_FLAG_R)	//STATIC ì»¨íŠ¸ë¡¤ë§Œ ë°°ê²½ìƒ‰ ë³€ê²½
+	{
+		pDC->SetBkMode(OPAQUE);
+		pDC->SetBkColor(RGB_BACK);	//ë°°ê²½ìƒ‰ ë³€ê²½
+	}
+	else {
+		//ê·¸ ì™¸ì˜ ì»¨íŠ¸ë¡¤ì€ ë°°ê²½ì„ íˆ¬ëª…í•˜ê²Œ	
+		pDC->SetBkMode(TRANSPARENT);		//ë°°ê²½ íˆ¬ëª…í•˜ê²Œ 
+	}
+
+	hbr = (HBRUSH)GetStockObject(NULL_BRUSH);
+	if (nCtlColor == CTLCOLOR_EDIT)
+	{
+		pDC->SetBkMode(OPAQUE);
+		pDC->SetBkColor(RGB(255, 0, 0));	//ë°°ê²½ìƒ‰ ë³€ê²½
+	}
+
+	return hbr;
+}
+;

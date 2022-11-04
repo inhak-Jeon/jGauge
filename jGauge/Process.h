@@ -18,7 +18,7 @@ public:
 	virtual ~Process();
 	
 	void getEdge(CRect rect, double *t, double *a, double *b);
-	int getEdgePoint(CRect rect);
+	int getEdgePoint(CRect rect, bool bDrawPoint);
 	double findMedianValue(int * arr, int size);
 	double measureDistance(double x, double y, Line line);
 };

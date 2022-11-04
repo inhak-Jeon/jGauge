@@ -24,6 +24,11 @@
 #define CAM_BPP 8
 #define CAM_NAME "Cam6LO"
 #define DEFAULT_SCALE_FACTOR 0.032822757111
+#define RGB_BACK RGB(237, 235, 233)
+//#define RGB_BACK RGB(248,248,255)
+
+
+
 
 #define MAX_OBJECT	4
 enum {
@@ -102,4 +107,7 @@ public:
 	CLabel m_labelPlateR;
 	CLabel m_labelFlagL;
 	CLabel m_labelFlagR;
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	CButton mChkDrawPoint;
 };

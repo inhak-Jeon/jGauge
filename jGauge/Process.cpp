@@ -73,7 +73,7 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 	delete pY, pX, pData;
 }
 
-int Process::getEdgePoint(CRect rect) {
+int Process::getEdgePoint(CRect rect, bool bDrawPoint) {
 	gEdge edge;
 
 	int *pData; //세로1줄(1열) 짜리 배열
@@ -98,12 +98,17 @@ int Process::getEdgePoint(CRect rect) {
 		pXInt[j - rect.top] = rect.right - dEdge;	//pXInt = [j, edge]
 
 		/* edge 표시하기 위한 테스트 코드*/
-		//m_fm[int(j*m_nPitch+(rect.right - dEdge))] = 0xff;
+		if (bDrawPoint) {
+			m_fm[int(j*m_nPitch + (rect.right - dEdge))] = 0xff;
+		}
+			
 	}
 
 	double result = findMedianValue(pXInt, rect.Height()); //edge들의 중앙값
 	/* edges의 중앙값을 표시하기 위한 테스트 코드*/
-	//m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
+	if (bDrawPoint) {
+		m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
+	}
 
 	delete pData, pXInt;
 	return result;
