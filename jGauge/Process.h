@@ -16,8 +16,7 @@ public:
 	Process(unsigned char* fm, int nWidth, int nHeight, int nPitch);
 	Process(gImage *pGImage);
 	virtual ~Process();
-	
-	void getEdge(CRect rect, double *t, double *a, double *b);
+	void getEdge(CRect rect, double * t, double * a, double * b, bool bDrawPoint);
 	int getEdgePoint(CRect rect, bool bDrawPoint);
 	double findMedianValue(int * arr, int size);
 	double measureDistance(double x, double y, Line line);

@@ -29,7 +29,7 @@ Process::~Process()
 
 
 // Process 멤버 함수
-void Process::getEdge(CRect rect, double *t, double *a, double *b)
+void Process::getEdge(CRect rect, double *t, double *a, double *b, bool bDrawPoint)
 {
 	gEdge edge;
 
@@ -59,12 +59,19 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 			pY[j - rect.top] = j;	//+rect.top 상태좌표를 절대좌표로 변환하기 위해사용
 
 			/* edge 표시하기 위한 테스트 코드*/
-			/*m_fm[int(pY[j - rect.top]) * m_nPitch + int(pX[j - rect.top])] = 0xff;*/
+			if (bDrawPoint){
+				m_fm[int(pY[j - rect.top]) * m_nPitch + int(pX[j - rect.top])] = 0xff;
+			}
 		}
+
 
 		double dErrorLimit = 1;
 		int nRemoveN = rect.Height()*0.2;
 		edge.LineFitting(rect.Height(), pX, pY, nRemoveN, dErrorLimit, t, a, b);	//input(x,y)들의 평균의 직선의 방정식
+		/* edges의 중심을 표시하기 위한 테스트 코드*/
+		if (bDrawPoint) {
+			m_fm[int(rect.CenterPoint().y * m_nPitch + ((*t)*rect.CenterPoint().y-(*b))/(*a))] = 150;
+		}
 
 		delete[] pY;
 		delete[] pX;
@@ -105,7 +112,7 @@ int Process::getEdgePoint(CRect rect, bool bDrawPoint) {
 	double result = findMedianValue(pXInt, rect.Height()); //edge들의 중앙값
 	/* edges의 중앙값을 표시하기 위한 테스트 코드*/
 	if (bDrawPoint) {
-		m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
+		m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 150;
 	}
 
 	delete[] pData;

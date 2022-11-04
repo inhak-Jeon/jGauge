@@ -263,6 +263,7 @@ void CjGaugeDlg::DrawEdge(bool overRect)
 	double t, a, b;
 	CPoint p1, p2;
 
+
 	if (overRect)
 	{
 		//BaseLine 엣지 그리기
@@ -335,8 +336,8 @@ void CjGaugeDlg::DrawInfomation() {
 	for (int i = PLATE_RIGHT; i <= FLAG_RIGHT; i++)
 	{
 		string strDistance = "";
-		double dResult = GetMM(m_measuredInfo[i].distancePixel);
-		strDistance.append(gString().format("{:0.3f}(mm)           ", dResult));
+		double dResult = m_measuredInfo[i].distancePixel;
+		strDistance.append(gString().format("{:0.3f}(mm)           \n{:0.3f}(p)          ", GetMM(dResult), dResult));
 		//design 변경
 		switch (i)
 		{
@@ -418,9 +419,9 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	if (m_rectRoi[1].Width() == 0)	return;
 	Process process(&m_imgDisplay);
 	//Plate-left Roi
-	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b);
+	process.getEdge(m_rectRoi[PLATE_LEFT], &m_lineBase.t, &m_lineBase.a, &m_lineBase.b, mChkDrawPoint.GetCheck());
 	//Plate-right Roi
-	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_linePlate.t, &m_linePlate.a, &m_linePlate.b);
+	process.getEdge(m_rectRoi[PLATE_RIGHT], &m_linePlate.t, &m_linePlate.a, &m_linePlate.b, mChkDrawPoint.GetCheck());
 
 	//PLATE_Right 까지의 거리 구하기
 	m_measuredInfo[PLATE_RIGHT].y = m_rectRoi[PLATE_RIGHT].CenterPoint().y;
@@ -442,11 +443,13 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 		m_measuredInfo[FLAG_RIGHT].x, m_measuredInfo[FLAG_RIGHT].y, m_lineBase);
 
 	m_imgDisplay.gDrawClear();
-	DrawEdge();
+	if (!mChkDrawPoint.GetCheck()) {
+		DrawEdge();
+	}
 	DrawRects();
 	DrawInfomation();
+	
 	m_imgDisplay.UpdateDisplay();
-
 }
 
 void CjGaugeDlg::testFunc()
@@ -475,9 +478,6 @@ void CjGaugeDlg::testFunc()
 		edge.LineFindEdge(opt, int(dOff), pProj + k, &dEdge, &nSlope);
 		cout << dEdge + k << endl;
 	}
-
-
-
 	delete pProj;
 }
 
@@ -520,7 +520,7 @@ void CjGaugeDlg::OnBnClickedBtnImgsave()
 	if (IDOK == dlg.DoModal())
 	{
 		CString pathName = dlg.GetPathName();
-		MessageBox(pathName);
+		//MessageBox(pathName);
 		m_imgDisplay.gSave(pathName, true);
 	}
 }
@@ -539,7 +539,7 @@ void CjGaugeDlg::OnBnClickedBtnImgload()
 			ChangeCamState();
 
 		CString pathName = dlg.GetPathName();
-		MessageBox(pathName);
+		//MessageBox(pathName);
 		m_imgDisplay.gLoad(pathName);
 	}
 }
