@@ -46,15 +46,11 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 		pX = new double[rect.Height()];
 		pY = new double[rect.Height()];
 
-		
-
-
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++)
 			{
 				pData[i - rect.left] = m_fm[j*m_nPitch + i];
 			}
-
 			edge.LineFindEdge(edgeoption, rect.Width(), pData, &dEdge, &nSlope, &dir);
 			
 
@@ -70,7 +66,9 @@ void Process::getEdge(CRect rect, double *t, double *a, double *b)
 		int nRemoveN = rect.Height()*0.2;
 		edge.LineFitting(rect.Height(), pX, pY, nRemoveN, dErrorLimit, t, a, b);	//input(x,y)들의 평균의 직선의 방정식
 
-	delete pY, pX, pData;
+		delete[] pY;
+		delete[] pX;
+		delete[] pData;
 }
 
 int Process::getEdgePoint(CRect rect, bool bDrawPoint) {
@@ -110,7 +108,8 @@ int Process::getEdgePoint(CRect rect, bool bDrawPoint) {
 		m_fm[int(rect.CenterPoint().y*m_nPitch + (result))] = 0;
 	}
 
-	delete pData, pXInt;
+	delete[] pData;
+	delete[] pXInt;
 	return result;
 }
 
