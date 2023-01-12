@@ -51,7 +51,10 @@ private:
 	void InitCam();
 	void _callback(unsigned char *imgPtr);
 	double m_dsf ;	//scale factor : mm/pixel	
+	int m_nCameraWidth;	//camera Width
+	int m_nCameraHeight; //camera Height
 	bool m_isStopCam;
+	bool m_bDrawLine;
 
 	gLogger *m_logResult;
 
@@ -110,4 +113,5 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	CButton mChkDrawPoint;
+	afx_msg void OnBnClickedChkDrawline();
 };

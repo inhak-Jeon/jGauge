@@ -102,6 +102,7 @@ BEGIN_MESSAGE_MAP(CjGaugeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_IMGLOAD, &CjGaugeDlg::OnBnClickedBtnImgload)
 ON_WM_ERASEBKGND()
 ON_WM_CTLCOLOR()
+ON_BN_CLICKED(IDC_CHK_DRAWLINE, &CjGaugeDlg::OnBnClickedChkDrawline)
 END_MESSAGE_MAP()
 
 
@@ -139,6 +140,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 	this->InitCam();//카메라 초기화
 	m_logResult = new gLogger("Log_Result", "c:/glim/Result.log", true, 1024*1000, 5);
 	m_isStopCam = false;
+	m_bDrawLine = false;
 
 	//design 초기화
 	m_labelPlateR.SetFontSize(20).SetTextColor(COLOR_RED).SetFontBold(true);
@@ -156,7 +158,7 @@ BOOL CjGaugeDlg::OnInitDialog()
 //카메라를 초기화합니다.
 void CjGaugeDlg::InitCam() {
 	//출력용 디스플레이 설정
-	m_imgDisplay.gCreate(CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+	m_imgDisplay.gCreate(m_nCameraWidth, m_nCameraHeight, CAM_BPP);
 	m_imgDisplay.gSetUseRoi(TRUE);	//ROI를 사용합니다.
 
 	// TODO: 카메라 관련 테스트
@@ -189,7 +191,7 @@ void CjGaugeDlg::InitCam() {
 void CjGaugeDlg::_callback(unsigned char *imgPtr)
 {
 	//카메라를 초기화합니다.
-	m_imgDisplay.gSetImage(imgPtr, CAM_WIDTH, CAM_HEIGHT, CAM_BPP);
+	m_imgDisplay.gSetImage(imgPtr, m_nCameraWidth, m_nCameraHeight, CAM_BPP);
 
 	OnBnClickedBtnMeasure();
 
@@ -445,6 +447,11 @@ void CjGaugeDlg::OnBnClickedBtnMeasure()
 	if (!mChkDrawPoint.GetCheck()) {
 		DrawEdge();
 	}
+	if (m_bDrawLine)
+	{
+		DrawDiffPixels();
+	}
+
 	DrawRects();
 	DrawInfomation();
 	
@@ -550,6 +557,18 @@ void CjGaugeDlg::CallCfg(int mode)
 
 	gCfg cfg(path, key);
 
+	//Camera 해상도
+	cfg.SerGet(mode, m_nCameraWidth, _T("CameraWidth"));
+	if (m_nCameraWidth == 0)
+	{
+		m_nCameraWidth = CAM_WIDTH;
+	}
+	cfg.SerGet(mode, m_nCameraHeight, _T("CameraHeight"));
+	if (m_nCameraHeight == 0)
+	{
+		m_nCameraHeight = CAM_HEIGHT;
+	}
+
 	//ScaleFactor
 	cfg.SerGet(mode, m_dsf, _T("ScaleFactor"));
 	if (m_dsf == 0)
@@ -603,3 +622,8 @@ HBRUSH CjGaugeDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 ;
+
+void CjGaugeDlg::OnBnClickedChkDrawline()
+{
+	m_bDrawLine = !m_bDrawLine;
+}
